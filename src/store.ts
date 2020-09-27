@@ -1,80 +1,150 @@
 import {
   Action,
   ActionRequest,
+  DeepReadonly,
   Planner,
   Reducer,
   State,
   Validator,
 } from './definitions';
-import { SharedStoreError } from './errors';
+import { PartiallySharedStoreError } from './errors';
 
-export const createStore = function <CustomState extends State>() {
-  return class SharedStore {
-    public static validatorMapping = new Map<string, Validator>();
-    public static plannerMapping = new Map<string, Planner>();
-    public static reducerMapping = new Map<string, Reducer<CustomState>>();
-    // private static serializerMapping = new Map<string, Validator>();
-    // private static deserializerMapping = new Map<string, Validator>();
-    public version: string = 'v0.0.0';
+export class PartiallySharedStore<CustomState extends State = State> {
+  private validatorMapping = new Map<string, Validator<CustomState, any>>();
+  private plannerMapping = new Map<string, Planner<CustomState, any>>();
+  private reducerMapping = new Map<string, Reducer<CustomState, any>>();
+  // private static serializerMapping = new Map<string, Validator>();
+  // private static deserializerMapping = new Map<string, Validator>();
 
-    constructor(public state: CustomState) {}
+  public statePromise: Promise<
+    IteratorResult<CustomState>
+  > = new Promise(() => {});
+  private stateResolve: (iteration: IteratorResult<CustomState>) => void = (
+    iteration,
+  ) => {};
+  private stateReject: () => void = () => {};
 
-    // utils to be overloaded
+  public version: string = 'v0.0.0';
 
-    public checkVersion(version: string) {
-      if (version !== this.version) {
-        throw new SharedStoreError(
-          `Store versions missmatch.\nLocal version: '${this.version}'\nRemote version: '${version}'`,
-        );
+  constructor(private _state: CustomState) {
+    this.setStatePromise();
+  }
+
+  private setStatePromise() {
+    this.statePromise = new Promise<IteratorResult<CustomState>>(
+      (resolve, reject) => {
+        this.stateResolve = resolve;
+        this.stateReject = reject;
+      },
+    ).then((result) => {
+      if (result.done) {
+        return result;
       }
-    }
+      this._state = result.value;
+      this.setStatePromise();
+      return result;
+    });
+  }
 
-    public clone(state: CustomState): void {
-      this.state = state;
-    }
+  private stateNext(state: CustomState): void {
+    this.stateResolve({ done: false, value: state });
+  }
 
-    // Magic
+  private stateDone(): void {
+    this.stateResolve({ done: true, value: this._state });
+  }
 
-    public validate(request: ActionRequest): void {
-      const validator = SharedStore.validatorMapping.get(request.type);
-      if (!validator) {
-        return;
-      }
-      validator.call(this, request);
-    }
+  get state(): AsyncIterable<DeepReadonly<CustomState>> {
+    const self = this;
+    return {
+      [Symbol.asyncIterator]: () => ({
+        next: async () => await self.statePromise,
+      }),
+    };
+  }
 
-    public plan(request: ActionRequest): Action[] {
-      const planner = SharedStore.plannerMapping.get(request.type);
-      if (!planner) {
-        return [];
-      }
-      return planner.call(this, request);
-    }
+  get currentState(): DeepReadonly<CustomState> {
+    return this._state;
+  }
 
-    public dispatch(action: Action): void {
-      const reducer = SharedStore.reducerMapping.get(action.type);
-      if (!reducer) {
-        return;
-      }
-      this.state = reducer.call(this, this.state, action);
-    }
+  // utils to be overloaded
 
-    public static createValidator(
-      actionRequestType: string,
-      validator: Validator,
-    ): void {
-      SharedStore.validatorMapping.set(actionRequestType, validator);
+  public checkVersion(version: string) {
+    if (version !== this.version) {
+      throw new PartiallySharedStoreError(
+        `Store versions missmatch.\nLocal version: '${this.version}'\nRemote version: '${version}'`,
+      );
     }
+  }
 
-    public static createPlanner(actionType: string, planner: Planner): void {
-      SharedStore.plannerMapping.set(actionType, planner);
-    }
+  public clone(state: CustomState): void {
+    this.stateNext(state);
+  }
 
-    public static createReducer(
-      actionType: string,
-      reducer: Reducer<CustomState>,
-    ): void {
-      SharedStore.reducerMapping.set(actionType, reducer);
+  public validate(
+    request: ActionRequest,
+    state: DeepReadonly<CustomState> | null = null,
+  ): void {
+    const validator = this.validatorMapping.get(request.type);
+    if (!validator) {
+      return;
     }
-  };
+    state = state || this._state;
+    validator.call(this, state, request);
+  }
+
+  public plan<CustomAction = any>(
+    request: ActionRequest,
+    state: DeepReadonly<CustomState> | null = null,
+  ): CustomAction[] {
+    const planner = this.plannerMapping.get(request.type);
+    if (!planner) {
+      return [];
+    }
+    state = state || this._state;
+    return (planner.call(this, state, request) as unknown[]) as CustomAction[];
+  }
+
+  public dispatch(
+    action: Action,
+    state: DeepReadonly<CustomState> | null = null,
+  ): void {
+    const reducer = this.reducerMapping.get(action.type);
+    if (!reducer) {
+      return;
+    }
+    state = state || this._state;
+    this.stateNext(reducer.call(this, this._state, action));
+  }
+
+  public createValidator<
+    CustomActionRequest extends ActionRequest = ActionRequest
+  >(
+    actionRequestType: string,
+    validator: Validator<CustomState, CustomActionRequest>,
+  ): void {
+    this.validatorMapping.set(actionRequestType, validator);
+  }
+
+  public createPlanner<
+    CustomActionRequest extends ActionRequest = ActionRequest
+  >(
+    actionRequestType: string,
+    planner: Planner<CustomState, CustomActionRequest>,
+  ): void {
+    this.plannerMapping.set(actionRequestType, planner);
+  }
+
+  public createReducer<CustomAction extends Action = Action>(
+    actionType: string,
+    reducer: Reducer<CustomState, CustomAction>,
+  ): void {
+    this.reducerMapping.set(actionType, reducer);
+  }
+}
+
+export const createStore = function <CustomState extends State = State>(
+  state: CustomState,
+): PartiallySharedStore<CustomState> {
+  return new PartiallySharedStore<CustomState>(state);
 };

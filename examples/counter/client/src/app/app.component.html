@@ -1,0 +1,14 @@
+<h1>Public Counters</h1>
+<ul>
+	<li *ngFor="let counter of (publicCounters$ | async)">
+		<app-counter [counter]="counter"></app-counter>
+	</li>
+</ul>
+<h1>Private Counters</h1>
+<ul>
+	<li *ngFor="let counter of (privateCounters$ | async)">
+		<app-counter [counter]="counter"></app-counter>
+	</li>
+	<li><button (click)="create()">Create new couter</button></li>
+<ul>
+

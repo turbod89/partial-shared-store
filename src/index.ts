@@ -1,6 +1,8 @@
 export {
   Model,
   Identity,
+  Request,
+  Response,
   Action,
   ActionRequest,
   CloneRequest,
@@ -11,4 +13,20 @@ export {
   VersionRequest,
   VersionResponse,
 } from './definitions';
-export { IdentityMapping } from './utils';
+export {
+  IdentityMapping,
+  createIdentity,
+  createIdentityRequest,
+  createIdentityResponse,
+  createCloneRequest,
+  createCloneResponse,
+  createVersionRequest,
+  createVersionResponse,
+  dataIsCloneRequest,
+  dataIsCloneResponse,
+  dataIsIdentityRequest,
+  dataIsIdentityResponse,
+  dataIsVersionRequest,
+  dataIsVersionResponse,
+} from './utils';
+export { createStore } from './store';

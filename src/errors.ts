@@ -1,7 +1,7 @@
-export class SharedStoreError extends Error {
+export class PartiallySharedStoreError extends Error {
   constructor(message?: string) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);
-    this.name = SharedStoreError.name;
+    this.name = PartiallySharedStoreError.name;
   }
 }

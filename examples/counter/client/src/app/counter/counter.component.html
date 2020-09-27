@@ -1,0 +1,8 @@
+<div>
+	{{counter.value}}
+	<button (click)="decrement()">-1</button>
+	<button (click)="increment()">+1</button>
+	<button *ngIf="isMine() && !counter.isPublic" (click)="publish()">Publish</button>
+	<button *ngIf="isMine() && counter.isPublic" (click)="unpublish()">Unpublish</button>
+	<button *ngIf="isMine()" (click)="remove()">Delete</button>
+</div>

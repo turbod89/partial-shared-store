@@ -2,6 +2,10 @@ export type UUID = string;
 export const uuidRegex = /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/g;
 export const isUuid = (s: string): boolean => uuidRegex.test(s);
 
+export type DeepReadonly<T> = {
+  readonly [P in keyof T]: DeepReadonly<T[P]>;
+};
+
 export interface Identificable {
   uuid: UUID;
 }
@@ -22,19 +26,29 @@ export interface ActionRequest extends Identificable {
 }
 
 export interface Action extends Identificable {
-  request: ActionRequest;
   type: string;
-  targets?: Identity[];
 }
 
-export type Validator = (actionRequest: ActionRequest) => void;
+export type Validator<
+  CustomState extends State = State,
+  CustomActionRequest extends ActionRequest = ActionRequest
+> = (
+  state: DeepReadonly<CustomState>,
+  actionRequest: CustomActionRequest,
+) => void;
 
-export type Planner = (actionRequest: ActionRequest) => Action[];
+export type Planner<
+  CustomState extends State = State,
+  CustomActionRequest extends ActionRequest = ActionRequest
+> = (
+  state: DeepReadonly<CustomState>,
+  actionRequest: CustomActionRequest,
+) => Action[];
 
-export type Reducer<CustomState extends State> = (
-  state: CustomState,
-  action: Action,
-) => CustomState;
+export type Reducer<
+  CustomState extends State = State,
+  CustomAction extends Action = Action
+> = (state: DeepReadonly<CustomState>, action: CustomAction) => CustomState;
 
 // special types
 export interface VersionRequest extends Identificable {
@@ -64,3 +78,15 @@ export interface CloneResponse<CustomState extends State>
   request: CloneRequest;
   state: CustomState;
 }
+
+export type Request =
+  | ActionRequest
+  | VersionRequest
+  | IdentityRequest
+  | CloneRequest;
+
+export type Response<CustomState extends State> =
+  | Action
+  | VersionResponse
+  | IdentityResponse
+  | CloneResponse<CustomState>;
