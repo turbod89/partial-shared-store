@@ -10,7 +10,7 @@ export enum ActionTypes {
   Remove = 'Remove',
   Create = 'Create',
 }
-export const dataIsAction = (data: any): boolean =>
+export const isAction = (data: any): boolean =>
   'type' in data && data.type in ActionTypes;
 
 export interface IncrementAction extends ActionBase {

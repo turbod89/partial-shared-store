@@ -1,0 +1,19 @@
+:host {
+  display: flex;
+  flex-flow: column;
+
+  app-user-list-item {
+    border-width: 0px 1px 1px 1px;
+    border-style: solid;
+    border-color: var(--primary-color-dark);
+  }
+
+  app-user-list-item:nth-child(1) {
+    border-width: 1px;
+    border-radius: var(--primary-border-radius) var(--primary-border-radius) 0 0;
+  }
+
+  app-user-list-item:nth-last-child(1) {
+    border-radius: 0 0 var(--primary-border-radius) var(--primary-border-radius);
+  }
+}

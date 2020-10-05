@@ -2,10 +2,56 @@ export type UUID = string;
 export const uuidRegex = /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/g;
 export const isUuid = (s: string): boolean => uuidRegex.test(s);
 
+/*
+export type DeepReadonly<T> = T extends Function
+  ? T
+  : T extends object
+  ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T;
+*/
+type Primitive = string | number | boolean | bigint | symbol | undefined | null;
+type Builtin = Primitive | Function | Date | Error | RegExp;
+export type DeepReadonly<T> = T extends Builtin
+  ? T
+  : T extends Map<infer K, infer V>
+  ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
+  : T extends ReadonlyMap<infer K, infer V>
+  ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>>
+  : T extends WeakMap<infer K, infer V>
+  ? WeakMap<DeepReadonly<K>, DeepReadonly<V>>
+  : T extends Set<infer U>
+  ? ReadonlySet<DeepReadonly<U>>
+  : T extends ReadonlySet<infer U>
+  ? ReadonlySet<DeepReadonly<U>>
+  : T extends WeakSet<infer U>
+  ? WeakSet<DeepReadonly<U>>
+  : T extends Promise<infer U>
+  ? Promise<DeepReadonly<U>>
+  : T extends {}
+  ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : Readonly<T>;
+
+export function deepFreeze(o: any) {
+  Object.freeze(o);
+
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    if (
+      o.hasOwnProperty(prop) &&
+      o[prop] !== null &&
+      (typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
+      !Object.isFrozen(o[prop])
+    ) {
+      deepFreeze(o[prop]);
+    }
+  });
+
+  return o;
+}
+/*
 export type DeepReadonly<T> = {
   readonly [P in keyof T]: DeepReadonly<T[P]>;
 };
-
+*/
 export interface Identificable {
   uuid: UUID;
 }
@@ -48,7 +94,10 @@ export type Planner<
 export type Reducer<
   CustomState extends State = State,
   CustomAction extends Action = Action
-> = (state: DeepReadonly<CustomState>, action: CustomAction) => CustomState;
+> = (
+  state: DeepReadonly<CustomState>,
+  action: CustomAction,
+) => DeepReadonly<CustomState>;
 
 // special types
 export interface VersionRequest extends Identificable {
@@ -76,7 +125,7 @@ export interface CloneResponse<CustomState extends State>
   extends Identificable {
   type: 'CloneResponse';
   request: CloneRequest;
-  state: CustomState;
+  state: DeepReadonly<CustomState>;
 }
 
 export type Request =

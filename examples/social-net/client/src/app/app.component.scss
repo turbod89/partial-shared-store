@@ -1,0 +1,47 @@
+:host {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  height: 100%;
+
+  header {
+    display: flex;
+    flex-flow: row;
+    justify-content: center;
+    width: 100%;
+
+    background-color: var(--primary-color-background-light);
+
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--primary-color-dark);
+  }
+
+  main {
+    --padding: 1em;
+    display: flex;
+    flex: 1;
+    flex-flow: column;
+    padding-left: var(--padding);
+    padding-right: var(--padding);
+
+    //box-shadow: 1px 0 var(--primary-color-dark),
+    //  -1px 0 var(--primary-color-dark);
+
+    @media (max-width: 575.98px) {
+      width: calc(100% - 2 * var(--padding));
+    }
+    @media (min-width: 576px) and (max-width: 767.98px) {
+      width: calc(576px - 2 * var(--padding));
+    }
+    @media (min-width: 768px) and (max-width: 991.98px) {
+      width: calc(768px - 2 * var(--padding));
+    }
+    @media (min-width: 992px) and (max-width: 1199.98px) {
+      width: calc(992px - 2 * var(--padding));
+    }
+    @media (min-width: 1200px) {
+      width: calc(1200px - 2 * var(--padding));
+    }
+  }
+}

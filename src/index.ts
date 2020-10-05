@@ -22,11 +22,11 @@ export {
   createCloneResponse,
   createVersionRequest,
   createVersionResponse,
-  dataIsCloneRequest,
-  dataIsCloneResponse,
-  dataIsIdentityRequest,
-  dataIsIdentityResponse,
-  dataIsVersionRequest,
-  dataIsVersionResponse,
+  isCloneRequest,
+  isCloneResponse,
+  isIdentityRequest,
+  isIdentityResponse,
+  isVersionRequest,
+  isVersionResponse,
 } from './utils';
 export { createStore } from './store';

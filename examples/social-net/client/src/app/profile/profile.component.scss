@@ -1,0 +1,49 @@
+:host {
+  form {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    padding: 1em;
+
+    background-color: var(--primary-color-background-light);
+    border: 1px solid var(--primary-color-dark);
+    border-radius: var(--primary-border-radius);
+
+    .field {
+      display: flex;
+      flex-flow: column;
+      align-items: flex-start;
+
+      label {
+        margin-bottom: 0.5em;
+      }
+
+      input[type='text'] {
+        min-width: 200px;
+        padding: 0.5em 1em 0.5em 1em;
+
+        border: 1px solid var(--primary-color-dark);
+        border-radius: var(--primary-border-radius);
+      }
+      input[type='text']:focus {
+        border-color: var(--primary-color-text);
+        outline: none;
+      }
+
+      .avatar {
+        align-self: center;
+        height: 120px;
+        width: 120px;
+        border-radius: 50%;
+        border: 1px solid var(--primary-color-dark);
+        background-size: cover;
+        background-image: url('/assets/default-avatar-icon.svg');
+        margin-bottom: 1em;
+      }
+    }
+
+    .field + .field {
+      margin-top: 1em;
+    }
+  }
+}

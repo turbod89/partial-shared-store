@@ -1,0 +1,28 @@
+<h2>Profile</h2>
+<form
+	*ngIf="(user$ | async) as user"
+	[formGroup]="profileForm"
+	(ngSubmit)="updateProfile()"
+>
+	<div class="field">
+		<img
+			class="avatar"
+			[ngStyle]="{
+				'background-image': 'url('+avatarUrl+')'
+			}"
+		/>
+		<label>Image URL</label>
+		<input formControlName="imageUrl" type="text"/>
+	</div>
+	<div class="field">
+		<label for="name">Name</label>
+		<input id="name" formControlName="name" type="text">
+	</div>
+	<div class="field">
+		<label for="screenName">Screen Name</label>
+		<input id="screenName" formControlName="screenName" type="text">
+	</div>
+	<div class="field">
+		<app-button class="accent" type="submit">Update and Return</app-button>
+	</div>
+</form>

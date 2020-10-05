@@ -1,0 +1,54 @@
+<ng-container
+	*ngIf="{
+		isMe: isMe$ | async,
+		isFriend: isFriend$ | async,
+		isFriendshipRequestFrom: isFriendshipRequestFrom$ | async,
+		isFriendshipRequestTo: isFriendshipRequestTo$ | async
+	} as state; else loading"
+>
+	<div
+		class="avatar"
+		[ngClass]="{
+			'status': !!user.status,
+			'connected': user.status=='Connected',
+			'disconnected': user.status=='Disconnected'
+		}"
+		[ngStyle]="{
+			'background-image': 'url(' + avatarUrl + ')'
+		}"
+	></div>
+	<div class="body">
+		<em>{{user.screenName}}</em>
+		<p *ngIf="user.name">{{user.name}}</p>
+	</div>
+	<div class="actions">
+		<app-button
+			*ngIf="state.isMe; else notMe"
+			(click)="goToProfile()"
+		>Edit</app-button>
+		<ng-template #notMe>
+			<ng-container *ngIf="state.isFriend; else isNotFriend">
+				<app-button (click)="unfriend()">Unfriend</app-button>
+			</ng-container>
+			<ng-template #isNotFriend>
+				<ng-container *ngIf="state.isFriendshipRequestFrom">
+					<div>Friendship Requested</div>
+					<app-button (click)="acceptFriendshipRequest()">Accept</app-button>
+					<app-button (click)="denyFriendshipRequest()">Deny</app-button>
+				</ng-container>
+				<ng-container *ngIf="state.isFriendshipRequestTo">
+					<div>Friendship Requested</div>
+					<app-button (click)="cancelFriendshipRequest()">Cancel</app-button>
+				</ng-container>
+				<app-button
+					class="accent"
+					*ngIf="!state.isFriendshipRequestFrom && !state.isFriendshipRequestTo"
+					(click)="requestFriendship()"
+				>Connect</app-button>
+			</ng-template>
+		</ng-template>
+	</div>
+</ng-container>
+<ng-template #loading>
+	Loading...
+</ng-template>
