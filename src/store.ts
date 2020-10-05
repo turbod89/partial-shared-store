@@ -1,6 +1,7 @@
 import {
   Action,
   ActionRequest,
+  deepFreeze,
   DeepReadonly,
   Planner,
   Reducer,
@@ -17,21 +18,21 @@ export class PartiallySharedStore<CustomState extends State = State> {
   // private static deserializerMapping = new Map<string, Validator>();
 
   public statePromise: Promise<
-    IteratorResult<CustomState>
+    IteratorResult<DeepReadonly<CustomState>>
   > = new Promise(() => {});
-  private stateResolve: (iteration: IteratorResult<CustomState>) => void = (
-    iteration,
-  ) => {};
+  private stateResolve: (
+    iteration: IteratorResult<DeepReadonly<CustomState>>,
+  ) => void = (iteration) => {};
   private stateReject: () => void = () => {};
 
   public version: string = 'v0.0.0';
 
-  constructor(private _state: CustomState) {
+  constructor(private _state: DeepReadonly<CustomState>) {
     this.setStatePromise();
   }
 
   private setStatePromise() {
-    this.statePromise = new Promise<IteratorResult<CustomState>>(
+    this.statePromise = new Promise<IteratorResult<DeepReadonly<CustomState>>>(
       (resolve, reject) => {
         this.stateResolve = resolve;
         this.stateReject = reject;
@@ -46,7 +47,7 @@ export class PartiallySharedStore<CustomState extends State = State> {
     });
   }
 
-  private stateNext(state: CustomState): void {
+  private stateNext(state: DeepReadonly<CustomState>): void {
     this.stateResolve({ done: false, value: state });
   }
 
@@ -77,7 +78,7 @@ export class PartiallySharedStore<CustomState extends State = State> {
     }
   }
 
-  public clone(state: CustomState): void {
+  public clone(state: DeepReadonly<CustomState>): void {
     this.stateNext(state);
   }
 
@@ -146,5 +147,5 @@ export class PartiallySharedStore<CustomState extends State = State> {
 export const createStore = function <CustomState extends State = State>(
   state: CustomState,
 ): PartiallySharedStore<CustomState> {
-  return new PartiallySharedStore<CustomState>(state);
+  return new PartiallySharedStore<CustomState>(deepFreeze(state));
 };
