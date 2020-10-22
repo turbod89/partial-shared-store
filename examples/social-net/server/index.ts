@@ -4,32 +4,55 @@ import * as WebSocket from 'ws';
 import {
   CloneRequest,
   CloneResponse,
-  Identity,
   IdentityMapping,
-  IdentityRequest,
-  IdentityResponse,
   VersionRequest,
   VersionResponse,
   createCloneResponse,
-  createIdentity,
-  createIdentityResponse,
   createVersionResponse,
   isCloneRequest,
-  isIdentityRequest,
   isVersionRequest,
 } from 'partially-shared-store';
-import { createStore } from 'counter-store';
-import { CounterStore } from 'counter-store/store';
-import { ActionRequest, isActionRequest } from 'counter-store/action-requests';
-import { CounterState } from 'counter-store/state';
-import { Action } from 'counter-store/actions';
+import {
+  createStore,
+  createIdentityResponse,
+  isIdentityRequest,
+  IdentityRequest,
+  IdentityResponse,
+} from 'social-store';
+import { SocialStore } from 'social-store/store';
+import { ActionRequest } from 'social-store/action-requests';
+import { Action } from 'social-store/actions';
+import { SocialState } from 'social-store/state';
+import {
+  deserializeActionRequest,
+  SerializedAction,
+  SerializedActionRequest,
+  serializeAction,
+} from 'social-store/serializers';
+import { shadowSocialState } from 'social-store/shaders';
+import { isSerializedActionRequest } from 'social-store/serializers';
+import { DeepReadonly } from 'partially-shared-store/definitions';
+import { UserModel, createUserModel } from 'social-store/models';
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const store: CounterStore = createStore();
-const idMap: IdentityMapping<WebSocket> = new IdentityMapping<WebSocket>();
+const store: SocialStore = createStore();
+const idMap: IdentityMapping<WebSocket, UserModel> = new IdentityMapping<
+  WebSocket,
+  UserModel
+>();
+const createToken = (): string => {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let token = '';
+  for (let i = 0; i < 64; i++) {
+    token += chars[Math.floor(chars.length * Math.random())];
+  }
+  return token;
+};
+const mapTokenUsers = new Map<string, UserModel>();
 
 const send = (ws: WebSocket, data: any) => {
   console.log('SENT:');
@@ -48,14 +71,17 @@ const onVersionRequest = (ws: WebSocket, data: any) => {
   send(ws, versionResponseData);
 };
 
-const onIdentityRequest = (ws: WebSocket, data: any) => {
-  const identity: Identity = createIdentity();
-  idMap.set(identity, ws);
+const onIdentityRequest = (ws: WebSocket, data: IdentityRequest) => {
+  const token: string = data.token || createToken();
+  const user: UserModel = mapTokenUsers.get(token) || createUserModel();
+  if (!mapTokenUsers.has(token)) {
+    mapTokenUsers.set(token, user);
+  }
+  idMap.set(user, ws);
   // Here we would deserialize
-  const request: IdentityRequest = data as IdentityRequest;
   const identityResponse: IdentityResponse = createIdentityResponse(
-    identity,
-    request,
+    token,
+    user,
   );
   // Here we would serialize
   const identityResponseData = identityResponse;
@@ -63,21 +89,26 @@ const onIdentityRequest = (ws: WebSocket, data: any) => {
 };
 
 const onCloneRequest = (ws: WebSocket, data: any) => {
-  const state: CounterState = store.currentState;
+  const state: DeepReadonly<SocialState> = store.currentState;
   // Here we would deserialize
+  const id = idMap.getId(ws);
+  if (!id) {
+    return;
+  }
   const request: CloneRequest = data as CloneRequest;
-  const cloneResponse: CloneResponse<CounterState> = createCloneResponse(
-    state,
-    request,
-  );
+  const cloneResponse: CloneResponse<SocialState> = createCloneResponse<
+    SocialState
+  >(shadowSocialState(state, id), request);
   // Here we would serialize
   const cloneResponseData = JSON.parse(JSON.stringify(cloneResponse));
   send(ws, cloneResponseData);
 };
 
-const onActionRequest = (ws: WebSocket, data: any) => {
-  // Here we would deserialize
-  const request: ActionRequest = data as ActionRequest;
+const onActionRequest = (ws: WebSocket, data: SerializedActionRequest) => {
+  const request: ActionRequest = deserializeActionRequest(
+    data,
+    store.currentState,
+  );
   const id = idMap.getId(ws);
   if (id) {
     request.author = id;
@@ -87,19 +118,19 @@ const onActionRequest = (ws: WebSocket, data: any) => {
 
 const planRequest = function (request: ActionRequest): void {
   store.validate(request);
-  const actions: Action[] = store.plan(request);
+  const actions: Action[] = store.plan<Action>(request);
   actions.forEach((action) => dispatchAction(action));
 };
 
 const dispatchAction = function (action: Action) {
   store.dispatch(action);
-  const targets: Identity[] = idMap.getAllIdentities();
+  const targets: UserModel[] = action.onlyTo || idMap.getAllIdentities();
 
-  targets.forEach((id) => {
-    const ws = idMap.getT(id);
+  targets.forEach((user) => {
+    const ws = idMap.getT(user);
     if (ws) {
       // Here we would serialize
-      const actionData = action;
+      const actionData: SerializedAction = serializeAction(action);
       send(ws, actionData);
     }
   });
@@ -116,7 +147,7 @@ wss.on('connection', (ws: WebSocket) => {
       onIdentityRequest(ws, data);
     } else if (isCloneRequest(data)) {
       onCloneRequest(ws, data);
-    } else if (isActionRequest(data)) {
+    } else if (isSerializedActionRequest(data)) {
       onActionRequest(ws, data);
     }
   });

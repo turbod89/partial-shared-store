@@ -20,12 +20,12 @@ import {
   createIdentityResponse,
   createVersionRequest,
   createVersionResponse,
-  dataIsCloneRequest,
-  dataIsCloneResponse,
-  dataIsIdentityRequest,
-  dataIsIdentityResponse,
-  dataIsVersionRequest,
-  dataIsVersionResponse,
+  isCloneRequest,
+  isCloneResponse,
+  isIdentityRequest,
+  isIdentityResponse,
+  isVersionRequest,
+  isVersionResponse,
   IdentityMapping,
 } from '../utils';
 import {
@@ -50,7 +50,7 @@ test('Shared counter', () => {
     Increment = 'Increment',
     Decrement = 'Decrement',
   }
-  const dataIsActionRequest = (data: any): boolean =>
+  const isActionRequest = (data: any): boolean =>
     'type' in data && data.type in ActionRequestTypes;
 
   interface IncrementActionRequest extends ActionRequest {
@@ -65,7 +65,7 @@ test('Shared counter', () => {
     Increment = 'Increment',
     Decrement = 'Decrement',
   }
-  const dataIsAction = (data: any): boolean =>
+  const isAction = (data: any): boolean =>
     'type' in data && data.type in ActionTypes;
 
   interface IncrementAction extends Action {
@@ -121,13 +121,13 @@ test('Shared counter', () => {
     }
 
     public onMessage(ws: WebSocketClient, data: any): void {
-      if (dataIsActionRequest(data)) {
+      if (isActionRequest(data)) {
         this.onActionRequest(ws, data);
-      } else if (dataIsVersionRequest(data)) {
+      } else if (isVersionRequest(data)) {
         this.onVersionRequest(ws, data);
-      } else if (dataIsIdentityRequest(data)) {
+      } else if (isIdentityRequest(data)) {
         this.onIdentityRequest(ws, data);
-      } else if (dataIsCloneRequest(data)) {
+      } else if (isCloneRequest(data)) {
         this.onCloneRequest(ws, data);
       } else {
         // other bussiness case
@@ -219,13 +219,13 @@ test('Shared counter', () => {
     }
 
     public onMessage(data: any): void {
-      if (dataIsAction(data)) {
+      if (isAction(data)) {
         this.onAction(data);
-      } else if (dataIsVersionResponse(data)) {
+      } else if (isVersionResponse(data)) {
         this.onVersionResponse(data);
-      } else if (dataIsIdentityResponse(data)) {
+      } else if (isIdentityResponse(data)) {
         this.onIdentityResponse(data);
-      } else if (dataIsCloneResponse(data)) {
+      } else if (isCloneResponse(data)) {
         this.onCloneResponse(data);
       } else {
         // other bussiness logic

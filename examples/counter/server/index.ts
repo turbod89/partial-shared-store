@@ -14,16 +14,13 @@ import {
   createIdentity,
   createIdentityResponse,
   createVersionResponse,
-  dataIsCloneRequest,
-  dataIsIdentityRequest,
-  dataIsVersionRequest,
+  isCloneRequest,
+  isIdentityRequest,
+  isVersionRequest,
 } from 'partially-shared-store';
 import { createStore } from 'counter-store';
 import { CounterStore } from 'counter-store/store';
-import {
-  ActionRequest,
-  dataIsActionRequest,
-} from 'counter-store/action-requests';
+import { ActionRequest, isActionRequest } from 'counter-store/action-requests';
 import { Action } from 'counter-store/actions';
 import { CounterState } from 'counter-store/state';
 import {
@@ -126,13 +123,13 @@ wss.on('connection', (ws: WebSocket) => {
     const data = JSON.parse(JSON.parse(rawData));
     console.log('RECEIVED:');
     console.log(data);
-    if (dataIsVersionRequest(data)) {
+    if (isVersionRequest(data)) {
       onVersionRequest(ws, data);
-    } else if (dataIsIdentityRequest(data)) {
+    } else if (isIdentityRequest(data)) {
       onIdentityRequest(ws, data);
-    } else if (dataIsCloneRequest(data)) {
+    } else if (isCloneRequest(data)) {
       onCloneRequest(ws, data);
-    } else if (dataIsActionRequest(data)) {
+    } else if (isActionRequest(data)) {
       onActionRequest(ws, data);
     }
   });

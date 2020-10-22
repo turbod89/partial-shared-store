@@ -130,17 +130,29 @@ export class PartiallySharedStore<CustomState extends State = State> {
   public createPlanner<
     CustomActionRequest extends ActionRequest = ActionRequest
   >(
-    actionRequestType: string,
+    actionRequestType: string | string[],
     planner: Planner<CustomState, CustomActionRequest>,
   ): void {
-    this.plannerMapping.set(actionRequestType, planner);
+    if (typeof actionRequestType === 'string') {
+      this.plannerMapping.set(actionRequestType, planner);
+    } else {
+      actionRequestType.map((actionRequestType) =>
+        this.plannerMapping.set(actionRequestType, planner),
+      );
+    }
   }
 
   public createReducer<CustomAction extends Action = Action>(
-    actionType: string,
+    actionType: string | string[],
     reducer: Reducer<CustomState, CustomAction>,
   ): void {
-    this.reducerMapping.set(actionType, reducer);
+    if (typeof actionType === 'string') {
+      this.reducerMapping.set(actionType, reducer);
+    } else {
+      actionType.map((actionType) =>
+        this.reducerMapping.set(actionType, reducer),
+      );
+    }
   }
 }
 

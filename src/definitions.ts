@@ -125,7 +125,7 @@ export interface CloneResponse<CustomState extends State>
   extends Identificable {
   type: 'CloneResponse';
   request: CloneRequest;
-  state: CustomState;
+  state: DeepReadonly<CustomState>;
 }
 
 export type Request =

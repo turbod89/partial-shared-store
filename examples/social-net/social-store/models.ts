@@ -1,4 +1,4 @@
-import { Identity } from 'partially-shared-store';
+import { createIdentity, Identity } from 'partially-shared-store';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 
 export interface UserModel extends Identity {
@@ -7,6 +7,11 @@ export interface UserModel extends Identity {
   status?: string;
   friends?: Set<string>;
 }
+
+export const createUserModel = (): UserModel => ({
+  ...createIdentity(),
+  screenName: 'Guest',
+});
 
 export const copyUserModel = (user: DeepReadonly<UserModel>): UserModel => {
   const newUserModel: UserModel = {

@@ -64,14 +64,14 @@ export const deserializeDeleteFriendshipRequestAction = (
 export interface SerializedAddFriendAction {
   uuid: string;
   type: ActionTypes.AddFriend;
-  user: SerializedKnownUserModel;
+  request: SerializedFriendshipRequestModel;
 }
 export const serializeAddFriendAction = (
   action: AddFriendAction,
 ): SerializedAddFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  user: serializeKnownUser(action.user),
+  request: serializeFriendshipRequestModel(action.request),
 });
 export const deserializeAddFriendAction = (
   action: SerializedAddFriendAction,
@@ -79,20 +79,20 @@ export const deserializeAddFriendAction = (
 ): AddFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  user: deserializeUser(action.user, state),
+  request: deserializeFriendshipRequestModel(action.request, state),
 });
 
 export interface SerializedDeleteFriendAction {
   uuid: string;
   type: ActionTypes.DeleteFriend;
-  user: SerializedKnownUserModel;
+  request: SerializedFriendshipRequestModel;
 }
 export const serializeDeleteFriendAction = (
   action: DeleteFriendAction,
 ): SerializedDeleteFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  user: serializeKnownUser(action.user),
+  request: serializeFriendshipRequestModel(action.request),
 });
 export const deserializeDeleteFriendAction = (
   action: SerializedDeleteFriendAction,
@@ -100,7 +100,7 @@ export const deserializeDeleteFriendAction = (
 ): DeleteFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  user: deserializeUser(action.user, state),
+  request: deserializeFriendshipRequestModel(action.request, state),
 });
 
 export type SerializedAction =

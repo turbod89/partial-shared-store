@@ -22,13 +22,13 @@ export interface DeleteFriendshipRequestAction extends ActionBase {
 
 export interface AddFriendAction extends ActionBase {
   type: ActionTypes.AddFriend;
-  user: UserModel;
+  request: FriendshipRequestModel;
   onlyTo?: UserModel[];
 }
 
 export interface DeleteFriendAction extends ActionBase {
   type: ActionTypes.DeleteFriend;
-  user: UserModel;
+  request: FriendshipRequestModel;
   onlyTo?: UserModel[];
 }
 

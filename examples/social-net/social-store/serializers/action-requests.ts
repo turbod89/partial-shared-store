@@ -30,7 +30,7 @@ const serializeActionRequestChangeOwnFieldType = (
     case ActionRequestChangeOwnFieldTypes.Name: {
       return 'name';
     }
-    case ActionRequestChangeOwnFieldTypes.DisplayName: {
+    case ActionRequestChangeOwnFieldTypes.ScreenName: {
       return 'display-name';
     }
     default: {
@@ -46,7 +46,7 @@ const deserializeActionRequestChangeOwnFieldType = (
       return ActionRequestChangeOwnFieldTypes.Name;
     }
     case 'display-name': {
-      return ActionRequestChangeOwnFieldTypes.DisplayName;
+      return ActionRequestChangeOwnFieldTypes.ScreenName;
     }
     default: {
       return ActionRequestChangeOwnFieldTypes.Status;
@@ -245,3 +245,8 @@ export const deserializeActionRequest = (
   }
   throw new PartiallySharedStoreError('Unknown request type');
 };
+
+export const isSerializedActionRequest = (
+  data: any,
+): data is SerializedActionRequest =>
+  'type' in data && data['type'] in ActionRequestTypes;

@@ -1,7 +1,7 @@
 import { DeepReadonly } from 'partially-shared-store/definitions';
-import { copyFriendshipRequestModel, UserModel } from '../models';
+import { UserModel } from '../models';
 import { SocialState } from '../state';
-import { shadowFriendshipRequestModel, shadowUserModel } from './models';
+import { shadowUserModel } from './models';
 
 export const shadowSocialState = (
   state: DeepReadonly<SocialState>,
@@ -17,18 +17,30 @@ export const shadowSocialState = (
       [to.uuid]: to,
     },
   );
-  const friendshipRequestsFrom = new Map().set(
-    to.uuid,
-    (state.friendshipRequests.from.get(to.uuid) || []).map((fr) =>
-      shadowFriendshipRequestModel(fr, to),
-    ),
-  );
-  const friendshipRequestsTo = new Map().set(
-    to.uuid,
-    (state.friendshipRequests.to.get(to.uuid) || []).map((fr) =>
-      shadowFriendshipRequestModel(fr, to),
-    ),
-  );
+  const friendshipRequestsFrom: { [uuid: string]: string[] } = {};
+  for (const uuid in state.friendshipRequests.from) {
+    const toUuids = state.friendshipRequests.from[uuid];
+    if (to.uuid === uuid) {
+      friendshipRequestsFrom[uuid] = toUuids.slice();
+    } else {
+      const index = toUuids.findIndex((uuid) => to.uuid === uuid);
+      if (index >= 0) {
+        friendshipRequestsFrom[uuid] = [to.uuid];
+      }
+    }
+  }
+  const friendshipRequestsTo: { [uuid: string]: string[] } = {};
+  for (const uuid in state.friendshipRequests.from) {
+    const toUuids = state.friendshipRequests.from[uuid];
+    if (to.uuid === uuid) {
+      friendshipRequestsTo[uuid] = toUuids.slice();
+    } else {
+      const index = toUuids.findIndex((uuid) => to.uuid === uuid);
+      if (index >= 0) {
+        friendshipRequestsTo[uuid] = [to.uuid];
+      }
+    }
+  }
   const friendshipRequests = {
     from: friendshipRequestsFrom,
     to: friendshipRequestsTo,

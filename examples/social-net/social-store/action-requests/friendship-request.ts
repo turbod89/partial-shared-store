@@ -15,7 +15,7 @@ export enum ActionRequestTypes {
 
 export enum ActionRequestChangeOwnFieldTypes {
   Name = 'Name',
-  DisplayName = 'DisplayName',
+  ScreenName = 'ScreenName',
   Status = 'Status',
 }
 

@@ -4,7 +4,6 @@ import { SocialState } from '../state';
 import {
   deserializeUnknownUser,
   SerializedUnknownUserModel,
-  serializeKnownUser,
   serializeUnknownUser,
 } from './models';
 
@@ -17,18 +16,18 @@ export interface SerializedSocialState {
 
 export const serializeSocialState = (
   state: DeepReadonly<SocialState>,
-): SerializedSocialState => ({
-  users: Object.keys(state.users)
+): SerializedSocialState => {
+  const users: SerializedUnknownUserModel[] = Object.keys(state.users)
     .map((key) => state.users[key])
-    .map(serializeUnknownUser),
-  friendshipRequests: [...state.friendshipRequests.from.entries()].reduce(
-    (friendshipRequests: { [uuid: string]: string[] }, [fromUuid, tos]) => {
-      friendshipRequests[fromUuid] = tos.map((fr) => serializeKnownUser(fr.to));
-      return friendshipRequests;
-    },
-    {},
-  ),
-});
+    .map(serializeUnknownUser);
+  const friendshipRequests: { [uuid: string]: string[] } = {};
+
+  for (const uuid in state.friendshipRequests.from) {
+    friendshipRequests[uuid] = state.friendshipRequests.from[uuid].slice();
+  }
+
+  return { users, friendshipRequests };
+};
 
 export const deserializeSocialState = (state: SerializedSocialState) => {
   const users = state.users.reduce<{ [uuid: string]: UserModel }>(
@@ -40,20 +39,16 @@ export const deserializeSocialState = (state: SerializedSocialState) => {
     {},
   );
 
-  const frsFrom = new Map<string, FriendshipRequestModel[]>();
-  const frsTo = new Map<string, FriendshipRequestModel[]>();
-  for (let fromUuid of Object.keys(state.friendshipRequests)) {
-    const localFrs = state.friendshipRequests[fromUuid].map((toUuid) => ({
-      from: users[fromUuid],
-      to: users[toUuid],
-    }));
-    frsFrom.set(fromUuid, localFrs);
-    localFrs.forEach((fr) => {
-      const v = frsTo.get(fr.to.uuid) || [];
-      v.push(fr);
-      if (!frsTo.has(fr.to.uuid)) {
-        frsTo.set(fr.to.uuid, v);
-      }
+  const frsFrom: { [uuid: string]: string[] } = {};
+  const frsTo: { [uuid: string]: string[] } = {};
+
+  for (const fromUuid in state.friendshipRequests) {
+    state.friendshipRequests[fromUuid].forEach((toUuid) => {
+      frsFrom[fromUuid] = frsFrom[fromUuid] || ([] as string[]);
+      frsTo[toUuid] = frsTo[toUuid] || ([] as string[]);
+
+      frsFrom[fromUuid].push(toUuid);
+      frsTo[toUuid].push(fromUuid);
     });
   }
 
