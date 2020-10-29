@@ -19,7 +19,7 @@ import {
   DeleteUserAction,
   UpdateUserAction,
 } from './actions';
-import { copyUserModel, UserModel } from './models';
+import { copyUserModel, UserModel, UserModelStatus } from './models';
 import { SocialState } from './state';
 import { SocialStore } from './store';
 
@@ -30,18 +30,24 @@ export const addPlanners = function (store: SocialStore) {
       state: DeepReadonly<SocialState>,
       request: ChangeOwnFieldActionRequest,
     ): [UpdateUserAction] => {
+      const friends: UserModel[] = Array.from(request.author.friends || [])
+        .map((uuid: string) => state.users[uuid])
+        .map(copyUserModel);
       const action: UpdateUserAction = {
         uuid: uuidv4(),
         type: ActionTypes.UpdateUser,
         user: copyUserModel(request.author),
+        //onlyTo: [request.author, ...friends],
       };
-      if (request.field == ActionRequestChangeOwnFieldTypes.Name) {
-        action.user.name = request.value;
-      } else if (request.field == ActionRequestChangeOwnFieldTypes.Status) {
-        action.user.status = request.value;
-      } else if (request.field == ActionRequestChangeOwnFieldTypes.ScreenName) {
-        action.user.screenName = request.value;
-      }
+      request.updates.forEach(({ field, value }) => {
+        if (field == ActionRequestChangeOwnFieldTypes.Name) {
+          action.user.name = value;
+        } else if (field == ActionRequestChangeOwnFieldTypes.Status) {
+          action.user.status = value;
+        } else if (field == ActionRequestChangeOwnFieldTypes.ScreenName) {
+          action.user.screenName = value;
+        }
+      });
       return [action];
     },
   );
@@ -121,40 +127,64 @@ export const addPlanners = function (store: SocialStore) {
   );
 
   store.createPlanner(
-    ActionRequestTypes.DisconnectUser,
+    ActionRequestTypes.ConnectUser,
     (
       state: DeepReadonly<SocialState>,
       request: DisconnectUserActionRequest,
-    ): [CreateUserAction] => {
+    ): [CreateUserAction | UpdateUserAction] => {
       const friends: UserModel[] = Array.from(request.user.friends || [])
         .map((uuid: string) => state.users[uuid])
         .map(copyUserModel);
-      return [
-        {
-          uuid: uuidv4(),
-          type: ActionTypes.CreateUser,
-          user: request.user,
-          onlyTo: [request.user, ...friends],
-        },
-      ];
+
+      if (request.user.uuid in state.users) {
+        const user = copyUserModel(state.users[request.user.uuid]);
+        user.status = UserModelStatus.Connected;
+        return [
+          {
+            uuid: uuidv4(),
+            type: ActionTypes.UpdateUser,
+            user,
+            //onlyTo: [user, ...friends],
+          },
+        ];
+      } else {
+        const user: UserModel = {
+          uuid: request.user.uuid,
+          screenName: request.user.screenName,
+          status: UserModelStatus.Connected,
+        };
+        if (request.user.name) {
+          user.name = request.user.name;
+        }
+        return [
+          {
+            uuid: uuidv4(),
+            type: ActionTypes.CreateUser,
+            user,
+            //onlyTo: [user, ...friends],
+          },
+        ];
+      }
     },
   );
 
   store.createPlanner(
-    ActionRequestTypes.ConnectUser,
+    ActionRequestTypes.DisconnectUser,
     (
       state: DeepReadonly<SocialState>,
       request: ConnectUserActionRequest,
-    ): [DeleteUserAction] => {
+    ): [UpdateUserAction] => {
       const friends: UserModel[] = Array.from(request.user.friends || [])
         .map((uuid: string) => state.users[uuid])
         .map(copyUserModel);
+      const user = copyUserModel(state.users[request.user.uuid]);
+      user.status = UserModelStatus.Disconnected;
       return [
         {
           uuid: uuidv4(),
-          type: ActionTypes.DeleteUser,
-          user: request.user,
-          onlyTo: [request.user, ...friends],
+          type: ActionTypes.UpdateUser,
+          user,
+          //onlyTo: [request.user, ...friends],
         },
       ];
     },

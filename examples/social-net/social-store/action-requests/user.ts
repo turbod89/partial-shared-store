@@ -1,5 +1,9 @@
-import { ActionRequest as ActionRequestBase } from 'partially-shared-store';
+import { ActionRequest as DefaultActionRequestBase } from 'partially-shared-store';
 import { UserModel } from '../models';
+
+interface ActionRequestBase extends DefaultActionRequestBase {
+  author: UserModel;
+}
 
 export enum ActionRequestTypes {
   ConnectUser = 'ConnectUser',

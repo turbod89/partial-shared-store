@@ -1,6 +1,7 @@
 import * as express from 'express';
 import * as http from 'http';
 import * as WebSocket from 'ws';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CloneRequest,
   CloneResponse,
@@ -20,7 +21,10 @@ import {
   IdentityResponse,
 } from 'social-store';
 import { SocialStore } from 'social-store/store';
-import { ActionRequest } from 'social-store/action-requests';
+import {
+  ActionRequest,
+  ActionRequestTypes,
+} from 'social-store/action-requests';
 import { Action } from 'social-store/actions';
 import { SocialState } from 'social-store/state';
 import {
@@ -29,7 +33,7 @@ import {
   SerializedActionRequest,
   serializeAction,
 } from 'social-store/serializers';
-import { shadowSocialState } from 'social-store/shaders';
+import { shadowSocialState, shadowAction } from 'social-store/shaders';
 import { isSerializedActionRequest } from 'social-store/serializers';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 import { UserModel, createUserModel } from 'social-store/models';
@@ -55,7 +59,12 @@ const createToken = (): string => {
 const mapTokenUsers = new Map<string, UserModel>();
 
 const send = (ws: WebSocket, data: any) => {
-  console.log('SENT:');
+  const to: UserModel | undefined = idMap.getId(ws);
+  if (to) {
+    console.log(`SENT to ${to.uuid}:`);
+  } else {
+    console.log('SENT:');
+  }
   console.log(data);
   return ws.send(JSON.stringify(data));
 };
@@ -105,15 +114,20 @@ const onCloneRequest = (ws: WebSocket, data: any) => {
 };
 
 const onActionRequest = (ws: WebSocket, data: SerializedActionRequest) => {
+  const id = idMap.getId(ws);
+  if (!id) {
+    return;
+  }
+
+  if (data.author != id.uuid) {
+    return;
+  }
+
   const request: ActionRequest = deserializeActionRequest(
     data,
     store.currentState,
   );
-  const id = idMap.getId(ws);
-  if (id) {
-    request.author = id;
-    planRequest(request);
-  }
+  planRequest(request);
 };
 
 const planRequest = function (request: ActionRequest): void {
@@ -130,7 +144,9 @@ const dispatchAction = function (action: Action) {
     const ws = idMap.getT(user);
     if (ws) {
       // Here we would serialize
-      const actionData: SerializedAction = serializeAction(action);
+      const actionData: SerializedAction = serializeAction(
+        shadowAction(action, user),
+      );
       send(ws, actionData);
     }
   });
@@ -153,7 +169,16 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', (code, reason) => {
+    const user = idMap.getId(ws);
     idMap.deleteT(ws);
+    if (user) {
+      planRequest({
+        uuid: uuidv4(),
+        type: ActionRequestTypes.DisconnectUser,
+        user,
+        author: user,
+      });
+    }
   });
 });
 

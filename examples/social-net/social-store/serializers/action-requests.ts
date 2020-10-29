@@ -9,14 +9,22 @@ import {
   DenyFriendshipRequestActionRequest,
   CancelFriendshipRequestActionRequest,
   ActionRequest,
+  ConnectUserActionRequest,
+  DisconnectUserActionRequest,
 } from '../action-requests';
 import { SocialState } from '../state';
 import {
   deserializeFriendshipRequestModel,
   deserializeKnownUser,
+  deserializeUnknownUser,
+  deserializeUser,
   SerializedFriendshipRequestModel,
+  SerializedKnownUserModel,
+  SerializedUnknownUserModel,
+  SerializedUserModel,
   serializeFriendshipRequestModel,
   serializeKnownUser,
+  serializeUnknownUser,
 } from './models';
 
 export type SerializedActionRequestChangeOwnFieldTypes =
@@ -58,8 +66,10 @@ export interface SerializedChangeOwnFieldActionRequest {
   uuid: string;
   author: string;
   type: 'ChangeOwnField';
-  field: SerializedActionRequestChangeOwnFieldTypes;
-  value: string;
+  updates: {
+    field: SerializedActionRequestChangeOwnFieldTypes;
+    value: string;
+  }[];
 }
 export const serializeChangeOwnFieldActionRequest = (
   request: ChangeOwnFieldActionRequest,
@@ -67,8 +77,10 @@ export const serializeChangeOwnFieldActionRequest = (
   uuid: request.uuid,
   author: request.author.uuid,
   type: 'ChangeOwnField',
-  field: serializeActionRequestChangeOwnFieldType(request.field),
-  value: request.value,
+  updates: request.updates.map(({ field, value }) => ({
+    field: serializeActionRequestChangeOwnFieldType(field),
+    value: value,
+  })),
 });
 export const deserializeChangeOwnFieldActionRequest = (
   data: SerializedChangeOwnFieldActionRequest,
@@ -77,8 +89,10 @@ export const deserializeChangeOwnFieldActionRequest = (
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
   type: ActionRequestTypes.ChangeOwnField,
-  field: deserializeActionRequestChangeOwnFieldType(data.field),
-  value: data.value,
+  updates: data.updates.map(({ field, value }) => ({
+    field: deserializeActionRequestChangeOwnFieldType(field),
+    value: value,
+  })),
 });
 
 export interface SerializedRequestFriendshipActionRequest {
@@ -177,12 +191,62 @@ export const deserializeCancelFriendshipRequestActionRequest = (
   request: deserializeFriendshipRequestModel(data.request, state),
 });
 
+export interface SerializedConnectUserActionRequest {
+  uuid: string;
+  author: SerializedUserModel;
+  type: 'ConnectUser';
+  user: SerializedUnknownUserModel;
+}
+export const serializeConnectUserActionRequest = (
+  request: ConnectUserActionRequest,
+): SerializedConnectUserActionRequest => ({
+  uuid: request.uuid,
+  author: serializeKnownUser(request.author),
+  type: 'ConnectUser',
+  user: serializeUnknownUser(request.user),
+});
+export const deserializeConnectUserActionRequest = (
+  data: SerializedConnectUserActionRequest,
+  state: DeepReadonly<SocialState>,
+): ConnectUserActionRequest => ({
+  uuid: data.uuid,
+  author: deserializeUser(data.user, state),
+  type: ActionRequestTypes.ConnectUser,
+  user: deserializeUser(data.user, state),
+});
+
+export interface SerializedDisconnectUserActionRequest {
+  uuid: string;
+  author: string;
+  type: 'DisconnectUser';
+  user: SerializedUserModel;
+}
+export const serializeDisconnectUserActionRequest = (
+  request: DisconnectUserActionRequest,
+): SerializedDisconnectUserActionRequest => ({
+  uuid: request.uuid,
+  author: serializeKnownUser(request.author),
+  type: 'DisconnectUser',
+  user: serializeUnknownUser(request.user),
+});
+export const deserializeDisconnectUserActionRequest = (
+  data: SerializedDisconnectUserActionRequest,
+  state: DeepReadonly<SocialState>,
+): DisconnectUserActionRequest => ({
+  uuid: data.uuid,
+  author: deserializeKnownUser(data.author, state),
+  type: ActionRequestTypes.DisconnectUser,
+  user: deserializeUser(data.user, state),
+});
+
 export type SerializedActionRequest =
   | SerializedChangeOwnFieldActionRequest
   | SerializedRequestFriendshipActionRequest
   | SerializedAcceptFriendshipRequestActionRequest
   | SerializedDenyFriendshipRequestActionRequest
-  | SerializedCancelFriendshipRequestActionRequest;
+  | SerializedCancelFriendshipRequestActionRequest
+  | SerializedConnectUserActionRequest
+  | SerializedDisconnectUserActionRequest;
 
 export const serializeActionRequest = (
   request: ActionRequest,
@@ -207,6 +271,14 @@ export const serializeActionRequest = (
     case ActionRequestTypes.CancelFriendshipRequest:
       return serializeCancelFriendshipRequestActionRequest(
         request as CancelFriendshipRequestActionRequest,
+      );
+    case ActionRequestTypes.ConnectUser:
+      return serializeConnectUserActionRequest(
+        request as ConnectUserActionRequest,
+      );
+    case ActionRequestTypes.DisconnectUser:
+      return serializeDisconnectUserActionRequest(
+        request as DisconnectUserActionRequest,
       );
   }
   throw new PartiallySharedStoreError('Unknown request type');
@@ -240,6 +312,16 @@ export const deserializeActionRequest = (
     case ActionRequestTypes.CancelFriendshipRequest:
       return deserializeCancelFriendshipRequestActionRequest(
         request as SerializedCancelFriendshipRequestActionRequest,
+        state,
+      );
+    case ActionRequestTypes.ConnectUser:
+      return deserializeConnectUserActionRequest(
+        request as SerializedConnectUserActionRequest,
+        state,
+      );
+    case ActionRequestTypes.DisconnectUser:
+      return deserializeDisconnectUserActionRequest(
+        request as SerializedDisconnectUserActionRequest,
         state,
       );
   }

@@ -5,12 +5,12 @@ import { shadowUserModel } from './models';
 
 export const shadowSocialState = (
   state: DeepReadonly<SocialState>,
-  to: UserModel,
+  to: DeepReadonly<UserModel>,
 ): DeepReadonly<SocialState> => {
-  const friends = to.friends ? [...to.friends] : [];
-  const users = friends.reduce(
-    (users: { [uuid: string]: DeepReadonly<UserModel> }, friendUuid) => {
-      users[friendUuid] = shadowUserModel(state.users[friendUuid], to);
+  //const friends = to.friends ? [...to.friends] : [];
+  const users = Object.keys(state.users).reduce(
+    (users: { [uuid: string]: DeepReadonly<UserModel> }, userUuid) => {
+      users[userUuid] = shadowUserModel(state.users[userUuid], to);
       return users;
     },
     {

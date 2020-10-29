@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
-import { map } from 'rxjs/operators';
+import { map, withLatestFrom } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 import {
   createStore,
@@ -11,8 +11,11 @@ import {
   createIdentityRequest,
   isIdentityResponse,
 } from 'social-store';
-import { Action, isAction } from 'social-store/actions';
-import { ActionRequest } from 'social-store/action-requests';
+import { Action, ActionTypes } from 'social-store/actions';
+import {
+  ActionRequest,
+  ActionRequestTypes,
+} from 'social-store/action-requests';
 import { SocialState } from 'social-store/state';
 import {
   createCloneRequest,
@@ -24,7 +27,7 @@ import {
 } from 'partially-shared-store';
 import { environment } from 'src/environments/environment';
 import { SocialStore } from 'social-store/store';
-import { Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import {
   deserializeAction,
   isSerializedAction,
@@ -33,10 +36,14 @@ import {
   SerializedActionRequest,
   deserializeUnknownUser,
 } from 'social-store/serializers';
-import { createUserModel, UserModel } from 'social-store/models';
+import { copyUserModel, createUserModel, UserModel } from 'social-store/models';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 
 type Message = Request | Response;
+
+type DistributiveOmit<T, K extends keyof T> = T extends unknown
+  ? Omit<T, K>
+  : never;
 
 @Injectable({
   providedIn: 'root',
@@ -49,11 +56,27 @@ export class PartiallySharedStoreService {
   public state$: Observable<
     DeepReadonly<SocialState>
   > = this.stateSource.asObservable();
-  public user: UserModel = createUserModel();
+  private userSource: BehaviorSubject<DeepReadonly<
+    UserModel
+  > | null> = new BehaviorSubject(null);
+  public user$: Observable<
+    DeepReadonly<UserModel>
+  > = this.userSource.asObservable();
 
   constructor() {
     this.stateToSource();
     this.connect();
+    this.state$
+      .pipe(
+        withLatestFrom(this.user$),
+        map(([state, user]) => {
+          if (!user || !user.uuid || !(user.uuid in state.users)) {
+            return;
+          }
+          this.userSource.next(state.users[user.uuid]);
+        }),
+      )
+      .subscribe();
   }
 
   public connect(): void {
@@ -109,7 +132,7 @@ export class PartiallySharedStoreService {
   private onIdentityResponse(data: IdentityResponse): void {
     // Here we would deserialize
     const response: IdentityResponse = data;
-    this.user = deserializeUnknownUser(response.user);
+    this.userSource.next(deserializeUnknownUser(response.user));
     localStorage.setItem('user-token', response.token);
     const cloneRequest: CloneRequest = createCloneRequest();
     // Here we would serialize
@@ -122,8 +145,17 @@ export class PartiallySharedStoreService {
     const response: CloneResponse<SocialState> = data as CloneResponse<
       SocialState
     >;
-    console.log('About clone');
     this.store.clone(response.state);
+    // connect user
+    const user = copyUserModel(this.userSource.getValue() as UserModel);
+    this.send(
+      serializeActionRequest({
+        uuid: uuidv4(),
+        type: ActionRequestTypes.ConnectUser,
+        user,
+        author: user,
+      }),
+    );
   }
 
   private onAction(data: SerializedAction): void {
@@ -137,9 +169,18 @@ export class PartiallySharedStoreService {
     this.socket$.next(parsedData);
   }
 
-  public dispatch(request: ActionRequest) {
+  public dispatch(
+    request: DistributiveOmit<
+      DistributiveOmit<ActionRequest, 'uuid'>,
+      'author'
+    >,
+  ) {
     const serializedActionRequest: SerializedActionRequest = serializeActionRequest(
-      request,
+      {
+        uuid: uuidv4(),
+        author: this.userSource.getValue() || createUserModel(),
+        ...request,
+      } as ActionRequest,
     );
     this.send(serializedActionRequest);
   }

@@ -1,6 +1,11 @@
 import { createIdentity, Identity } from 'partially-shared-store';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 
+export enum UserModelStatus {
+  Connected = 'Connected',
+  Disconnected = 'Disconnected',
+}
+
 export interface UserModel extends Identity {
   screenName: string;
   name?: string;

@@ -21,8 +21,10 @@ export enum ActionRequestChangeOwnFieldTypes {
 
 export interface ChangeOwnFieldActionRequest extends ActionRequestBase {
   type: ActionRequestTypes.ChangeOwnField;
-  field: ActionRequestChangeOwnFieldTypes;
-  value: string;
+  updates: {
+    field: ActionRequestChangeOwnFieldTypes;
+    value: string;
+  }[];
 }
 
 export interface RequestFriendshipActionRequest extends ActionRequestBase {

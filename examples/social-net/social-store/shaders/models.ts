@@ -3,9 +3,9 @@ import { UserModel, copyUserModel, FriendshipRequestModel } from '../models';
 
 export const shadowUserModel = (
   user: DeepReadonly<UserModel>,
-  to: UserModel,
+  to: DeepReadonly<UserModel>,
 ): UserModel => {
-  if (user.friends && user.friends.has(to.uuid)) {
+  if (user.uuid === to.uuid || (user.friends && user.friends.has(to.uuid))) {
     return copyUserModel(user);
   }
   return {
@@ -16,7 +16,7 @@ export const shadowUserModel = (
 
 export const shadowFriendshipRequestModel = (
   fr: DeepReadonly<FriendshipRequestModel>,
-  to: UserModel,
+  to: DeepReadonly<UserModel>,
 ): FriendshipRequestModel => ({
   from: shadowUserModel(fr.from, to),
   to: shadowUserModel(fr.to, to),

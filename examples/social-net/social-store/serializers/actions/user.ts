@@ -39,14 +39,14 @@ export const deserializeCreateUserAction = (
 export interface SerializedUpdateUserAction {
   uuid: string;
   type: ActionTypes.UpdateUser;
-  user: SerializedKnownUserModel;
+  user: SerializedUnknownUserModel;
 }
 export const serializeUpdateUserAction = (
   action: UpdateUserAction,
 ): SerializedUpdateUserAction => ({
   uuid: action.uuid,
   type: action.type,
-  user: serializeKnownUser(action.user),
+  user: serializeUnknownUser(action.user),
 });
 export const deserializeUpdateUserAction = (
   action: SerializedUpdateUserAction,

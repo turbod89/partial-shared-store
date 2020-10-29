@@ -1,0 +1,29 @@
+<ng-container
+	*ngIf="{
+		isMe: isMe$ | async,
+		isFriend: isFriend$ | async,
+		isFriendshipRequestFrom: isFriendshipRequestFrom$ | async,
+		isFriendshipRequestTo: isFriendshipRequestTo$ | async
+	} as state; else loading"
+>
+	<ng-container *ngIf="user.status=='Connected'">(C)</ng-container>
+	<ng-container *ngIf="user.status=='Disconnected'">(D)</ng-container>
+	<em>{{user.screenName}}</em>
+	<a *ngIf="state.isMe; else notMe" href="/profile">Edit</a>
+	<ng-template #notMe>
+		<ng-container *ngIf="state.isFriend; else isNotFriend">
+		</ng-container>
+		<ng-template #isNotFriend>
+			<button
+				*ngIf="state.isFriendshipRequestFrom"
+			>Cancel Request Friendship</button>
+			<button
+				*ngIf="!state.isFriendshipRequestFrom && !state.isFriendshipRequestTo"
+				(click)="requestFriendship()"
+			>Request Friendship</button>
+		</ng-template>
+	</ng-template>
+</ng-container>
+<ng-template #loading>
+	Loading...
+</ng-template>
