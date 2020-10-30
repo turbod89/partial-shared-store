@@ -12,11 +12,13 @@
 	<a *ngIf="state.isMe; else notMe" href="/profile">Edit</a>
 	<ng-template #notMe>
 		<ng-container *ngIf="state.isFriend; else isNotFriend">
+			<div>Friend</div>
 		</ng-container>
 		<ng-template #isNotFriend>
-			<button
-				*ngIf="state.isFriendshipRequestFrom"
-			>Cancel Request Friendship</button>
+			<ng-container *ngIf="state.isFriendshipRequestFrom">
+				<div>Friendship Requested</div>
+				<button (click)="cancelFriendshipRequest()">Cancel</button>
+			</ng-container>
 			<button
 				*ngIf="!state.isFriendshipRequestFrom && !state.isFriendshipRequestTo"
 				(click)="requestFriendship()"

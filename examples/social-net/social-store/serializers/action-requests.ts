@@ -12,6 +12,7 @@ import {
   ConnectUserActionRequest,
   DisconnectUserActionRequest,
 } from '../action-requests';
+import { UserModel } from '../models';
 import { SocialState } from '../state';
 import {
   deserializeFriendshipRequestModel,
@@ -123,7 +124,7 @@ export interface SerializedAcceptFriendshipRequestActionRequest {
   uuid: string;
   author: string;
   type: 'AcceptFriendshipRequest';
-  request: SerializedFriendshipRequestModel;
+  from: SerializedUserModel;
 }
 export const serializeAcceptFriendshipRequestActionRequest = (
   request: AcceptFriendshipRequestActionRequest,
@@ -131,7 +132,7 @@ export const serializeAcceptFriendshipRequestActionRequest = (
   uuid: request.uuid,
   author: request.author.uuid,
   type: 'AcceptFriendshipRequest',
-  request: serializeFriendshipRequestModel(request.request),
+  from: serializeKnownUser(request.from),
 });
 export const deserializeAcceptFriendshipRequestActionRequest = (
   data: SerializedAcceptFriendshipRequestActionRequest,
@@ -140,14 +141,14 @@ export const deserializeAcceptFriendshipRequestActionRequest = (
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
   type: ActionRequestTypes.AcceptFriendshipRequest,
-  request: deserializeFriendshipRequestModel(data.request, state),
+  from: deserializeUser(data.from, state),
 });
 
 export interface SerializedDenyFriendshipRequestActionRequest {
   uuid: string;
   author: string;
   type: 'DenyFriendshipRequest';
-  request: SerializedFriendshipRequestModel;
+  from: SerializedUserModel;
 }
 export const serializeDenyFriendshipRequestActionRequest = (
   request: DenyFriendshipRequestActionRequest,
@@ -155,7 +156,7 @@ export const serializeDenyFriendshipRequestActionRequest = (
   uuid: request.uuid,
   author: request.author.uuid,
   type: 'DenyFriendshipRequest',
-  request: serializeFriendshipRequestModel(request.request),
+  from: serializeKnownUser(request.from),
 });
 export const deserializeDenyFriendshipRequestActionRequest = (
   data: SerializedDenyFriendshipRequestActionRequest,
@@ -164,14 +165,14 @@ export const deserializeDenyFriendshipRequestActionRequest = (
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
   type: ActionRequestTypes.DenyFriendshipRequest,
-  request: deserializeFriendshipRequestModel(data.request, state),
+  from: deserializeUser(data.from, state),
 });
 
 export interface SerializedCancelFriendshipRequestActionRequest {
   uuid: string;
   author: string;
   type: 'CancelFriendshipRequest';
-  request: SerializedFriendshipRequestModel;
+  to: SerializedUserModel;
 }
 export const serializeCancelFriendshipRequestActionRequest = (
   request: CancelFriendshipRequestActionRequest,
@@ -179,7 +180,7 @@ export const serializeCancelFriendshipRequestActionRequest = (
   uuid: request.uuid,
   author: request.author.uuid,
   type: 'CancelFriendshipRequest',
-  request: serializeFriendshipRequestModel(request.request),
+  to: serializeKnownUser(request.to),
 });
 export const deserializeCancelFriendshipRequestActionRequest = (
   data: SerializedCancelFriendshipRequestActionRequest,
@@ -188,7 +189,7 @@ export const deserializeCancelFriendshipRequestActionRequest = (
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
   type: ActionRequestTypes.CancelFriendshipRequest,
-  request: deserializeFriendshipRequestModel(data.request, state),
+  to: deserializeUser(data.to, state),
 });
 
 export interface SerializedConnectUserActionRequest {

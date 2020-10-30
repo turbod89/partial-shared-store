@@ -20,19 +20,24 @@ export class UserListItemComponent implements OnInit {
 
   constructor(private psStore: PartiallySharedStoreService) {
     this.isMe$ = this.psStore.user$.pipe(
-      map((me) => me && me.uuid === this.user.uuid),
+      map((me) => !!me && me.uuid === this.user.uuid),
+      //tap((isMe) => console.log(`Is me: ${isMe}`)),
     );
     this.isFriend$ = this.psStore.user$.pipe(
-      map((me) => me && me.friends && me.friends.has(this.user.uuid)),
+      map((me) => !!me && !!me.friends && me.friends.has(this.user.uuid)),
+      //tap((isFriend) => console.log(`Is friend: ${isFriend}`)),
     );
     this.isFriendshipRequestFrom$ = this.psStore.state$.pipe(
-      tap(console.log),
       map((state) => this.user.uuid in state.friendshipRequests.from),
+      //tap((_) => console.log(`There is friendship request from: ${_}`)),
     );
     this.isFriendshipRequestTo$ = this.psStore.state$.pipe(
       map((state) => this.user.uuid in state.friendshipRequests.to),
+      //tap((_) => console.log(`There is friendship request to: ${_}`)),
     );
   }
+
+  public ngOnInit(): void {}
 
   public requestFriendship() {
     this.psStore.dispatch({
@@ -41,5 +46,24 @@ export class UserListItemComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  public cancelFriendshipRequest() {
+    this.psStore.dispatch({
+      type: ActionRequestTypes.CancelFriendshipRequest,
+      to: copyUserModel(this.user),
+    });
+  }
+
+  public denyFriendshipRequest() {
+    this.psStore.dispatch({
+      type: ActionRequestTypes.DenyFriendshipRequest,
+      from: copyUserModel(this.user),
+    });
+  }
+
+  public acceptFriendshipRequest() {
+    this.psStore.dispatch({
+      type: ActionRequestTypes.AcceptFriendshipRequest,
+      from: copyUserModel(this.user),
+    });
+  }
 }

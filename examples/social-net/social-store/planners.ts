@@ -4,6 +4,7 @@ import {
   AcceptFriendshipRequestActionRequest,
   ActionRequestChangeOwnFieldTypes,
   ActionRequestTypes,
+  CancelFriendshipRequestActionRequest,
   ChangeOwnFieldActionRequest,
   ConnectUserActionRequest,
   DenyFriendshipRequestActionRequest,
@@ -71,21 +72,45 @@ export const addPlanners = function (store: SocialStore) {
   );
 
   store.createPlanner(
-    [
-      ActionRequestTypes.DenyFriendshipRequest,
-      ActionRequestTypes.CancelFriendshipRequest,
-    ],
+    ActionRequestTypes.DenyFriendshipRequest,
     (
       state: DeepReadonly<SocialState>,
       request: DenyFriendshipRequestActionRequest,
-    ): [DeleteFriendshipRequestAction] => [
-      {
-        uuid: uuidv4(),
-        type: ActionTypes.DeleteFriendshipRequest,
-        request: request.request,
-        onlyTo: [request.request.from, request.request.to],
-      },
-    ],
+    ): [DeleteFriendshipRequestAction] => {
+      const fsRequest = {
+        from: request.from,
+        to: request.author,
+      };
+      return [
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.DeleteFriendshipRequest,
+          request: fsRequest,
+          onlyTo: [fsRequest.from, fsRequest.to],
+        },
+      ];
+    },
+  );
+
+  store.createPlanner(
+    ActionRequestTypes.CancelFriendshipRequest,
+    (
+      state: DeepReadonly<SocialState>,
+      request: CancelFriendshipRequestActionRequest,
+    ): [DeleteFriendshipRequestAction] => {
+      const fsRequest = {
+        from: request.author,
+        to: request.to,
+      };
+      return [
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.DeleteFriendshipRequest,
+          request: fsRequest,
+          onlyTo: [fsRequest.from, fsRequest.to],
+        },
+      ];
+    },
   );
 
   store.createPlanner(
@@ -94,33 +119,28 @@ export const addPlanners = function (store: SocialStore) {
       state: DeepReadonly<SocialState>,
       request: AcceptFriendshipRequestActionRequest,
     ): [AddFriendAction, DeleteFriendshipRequestAction] => {
-      const fromFriends: UserModel[] = Array.from(
-        request.request.from.friends || [],
-      )
+      const fsRequest = {
+        from: request.from,
+        to: request.author,
+      };
+      const fromFriends: UserModel[] = Array.from(fsRequest.from.friends || [])
         .map((uuid: string) => state.users[uuid])
         .map(copyUserModel);
-      const toFriends: UserModel[] = Array.from(
-        request.request.to.friends || [],
-      )
+      const toFriends: UserModel[] = Array.from(fsRequest.to.friends || [])
         .map((uuid: string) => state.users[uuid])
         .map(copyUserModel);
       return [
         {
           uuid: uuidv4(),
           type: ActionTypes.AddFriend,
-          request: request.request,
-          onlyTo: [
-            request.request.from,
-            request.request.to,
-            ...fromFriends,
-            ...toFriends,
-          ],
+          request: fsRequest,
+          onlyTo: [request.from, request.author, ...fromFriends, ...toFriends],
         },
         {
           uuid: uuidv4(),
           type: ActionTypes.DeleteFriendshipRequest,
-          request: request.request,
-          onlyTo: [request.request.from, request.request.to],
+          request: fsRequest,
+          onlyTo: [fsRequest.from, fsRequest.to],
         },
       ];
     },

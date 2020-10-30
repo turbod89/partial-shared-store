@@ -35,18 +35,18 @@ export interface RequestFriendshipActionRequest extends ActionRequestBase {
 export interface AcceptFriendshipRequestActionRequest
   extends ActionRequestBase {
   type: ActionRequestTypes.AcceptFriendshipRequest;
-  request: FriendshipRequestModel;
+  from: UserModel;
 }
 
 export interface DenyFriendshipRequestActionRequest extends ActionRequestBase {
   type: ActionRequestTypes.DenyFriendshipRequest;
-  request: FriendshipRequestModel;
+  from: UserModel;
 }
 
 export interface CancelFriendshipRequestActionRequest
   extends ActionRequestBase {
   type: ActionRequestTypes.CancelFriendshipRequest;
-  request: FriendshipRequestModel;
+  to: UserModel;
 }
 
 export type ActionRequest =

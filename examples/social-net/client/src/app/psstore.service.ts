@@ -88,7 +88,7 @@ export class PartiallySharedStoreService {
         map((data: string): Message => (data as unknown) as Message),
       );
       this.responses$.subscribe((data: object) => {
-        console.log(data);
+        // console.log(data);
         if (isSerializedAction(data)) {
           this.onAction(data);
         } else if (isVersionResponse(data)) {
