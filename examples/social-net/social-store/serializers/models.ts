@@ -40,7 +40,9 @@ export const serializeUnknownUser = (
   }
   return serializedUser;
 };
-export const deserializeUnknownUser = (user: SerializedUnknownUserModel) => {
+export const deserializeUnknownUser = (
+  user: DeepReadonly<SerializedUnknownUserModel>,
+) => {
   const newUserModel: UserModel = {
     uuid: user.uuid,
     screenName: user.screenName,
@@ -74,7 +76,7 @@ export const serializeFriendshipRequestModel = (
   fr: DeepReadonly<FriendshipRequestModel>,
 ): SerializedFriendshipRequestModel => ({
   from: fr.from.uuid,
-  to: fr.from.uuid,
+  to: fr.to.uuid,
 });
 
 export const deserializeFriendshipRequestModel = (

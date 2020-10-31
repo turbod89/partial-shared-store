@@ -12,18 +12,12 @@ import {
   ConnectUserActionRequest,
   DisconnectUserActionRequest,
 } from '../action-requests';
-import { UserModel } from '../models';
 import { SocialState } from '../state';
 import {
-  deserializeFriendshipRequestModel,
   deserializeKnownUser,
-  deserializeUnknownUser,
   deserializeUser,
-  SerializedFriendshipRequestModel,
-  SerializedKnownUserModel,
   SerializedUnknownUserModel,
   SerializedUserModel,
-  serializeFriendshipRequestModel,
   serializeKnownUser,
   serializeUnknownUser,
 } from './models';

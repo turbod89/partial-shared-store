@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { AllUsersComponent } from './all-users/all-users.component';
 import { AppComponent } from './app.component';
 import { ProfileComponent } from './profile/profile.component';
-import { UserListComponent } from './user-list/user-list.component';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'list',
+    redirectTo: 'all',
     pathMatch: 'full',
   },
   {
@@ -15,8 +15,8 @@ const routes: Routes = [
     component: ProfileComponent,
   },
   {
-    path: 'list',
-    component: UserListComponent,
+    path: 'all',
+    component: AllUsersComponent,
   },
   {
     path: '**',

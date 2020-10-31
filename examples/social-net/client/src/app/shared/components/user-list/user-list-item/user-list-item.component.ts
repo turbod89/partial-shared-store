@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, withLatestFrom } from 'rxjs/operators';
 import { ActionRequestTypes } from 'social-store/action-requests';
 import { copyUserModel, UserModel } from 'social-store/models';
 import { PartiallySharedStoreService } from 'src/app/psstore.service';
@@ -28,11 +28,25 @@ export class UserListItemComponent implements OnInit {
       //tap((isFriend) => console.log(`Is friend: ${isFriend}`)),
     );
     this.isFriendshipRequestFrom$ = this.psStore.state$.pipe(
-      map((state) => this.user.uuid in state.friendshipRequests.from),
+      withLatestFrom(this.psStore.user$),
+      map(
+        ([state, me]) =>
+          this.user.uuid in state.friendshipRequests.from &&
+          state.friendshipRequests.from[this.user.uuid].findIndex(
+            (toUuid) => toUuid === me.uuid,
+          ) >= 0,
+      ),
       //tap((_) => console.log(`There is friendship request from: ${_}`)),
     );
     this.isFriendshipRequestTo$ = this.psStore.state$.pipe(
-      map((state) => this.user.uuid in state.friendshipRequests.to),
+      withLatestFrom(this.psStore.user$),
+      map(
+        ([state, me]) =>
+          this.user.uuid in state.friendshipRequests.to &&
+          state.friendshipRequests.to[this.user.uuid].findIndex(
+            (fromUuid) => fromUuid === me.uuid,
+          ) >= 0,
+      ),
       //tap((_) => console.log(`There is friendship request to: ${_}`)),
     );
   }

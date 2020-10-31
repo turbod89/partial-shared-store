@@ -16,7 +16,7 @@ import {
   ActionRequest,
   ActionRequestTypes,
 } from 'social-store/action-requests';
-import { SocialState } from 'social-store/state';
+import { createInitialState, SocialState } from 'social-store/state';
 import {
   createCloneRequest,
   isCloneResponse,
@@ -35,6 +35,8 @@ import {
   SerializedAction,
   SerializedActionRequest,
   deserializeUnknownUser,
+  SerializedSocialState,
+  deserializeSocialState,
 } from 'social-store/serializers';
 import { copyUserModel, createUserModel, UserModel } from 'social-store/models';
 import { DeepReadonly } from 'partially-shared-store/definitions';
@@ -52,7 +54,9 @@ export class PartiallySharedStoreService {
   private socket$: WebSocketSubject<string>;
   private responses$: Observable<Message>;
   private store: SocialStore = createStore();
-  private stateSource: Subject<DeepReadonly<SocialState>> = new Subject();
+  private stateSource: Subject<DeepReadonly<SocialState>> = new BehaviorSubject(
+    createInitialState(),
+  );
   public state$: Observable<
     DeepReadonly<SocialState>
   > = this.stateSource.asObservable();
@@ -70,6 +74,9 @@ export class PartiallySharedStoreService {
       .pipe(
         withLatestFrom(this.user$),
         map(([state, user]) => {
+          console.groupCollapsed('State');
+          console.log(state);
+          console.groupEnd();
           if (!user || !user.uuid || !(user.uuid in state.users)) {
             return;
           }
@@ -95,7 +102,7 @@ export class PartiallySharedStoreService {
           this.onVersionResponse(data);
         } else if (isIdentityResponse(data)) {
           this.onIdentityResponse(data);
-        } else if (isCloneResponse(data)) {
+        } else if (isCloneResponse<SerializedSocialState>(data)) {
           this.onCloneResponse(data);
         }
       });
@@ -140,12 +147,15 @@ export class PartiallySharedStoreService {
     this.send(requestData);
   }
 
-  private onCloneResponse(data: any): void {
+  private onCloneResponse(data: CloneResponse<SerializedSocialState>): void {
     // Here we would deserialize
-    const response: CloneResponse<SocialState> = data as CloneResponse<
-      SocialState
-    >;
-    this.store.clone(response.state);
+    const response: CloneResponse<SerializedSocialState> = data;
+    const serializedSocialState: DeepReadonly<SerializedSocialState> =
+      response.state;
+    const socialState: SocialState = deserializeSocialState(
+      serializedSocialState,
+    );
+    this.store.clone(socialState);
     // connect user
     const user = copyUserModel(this.userSource.getValue() as UserModel);
     this.send(

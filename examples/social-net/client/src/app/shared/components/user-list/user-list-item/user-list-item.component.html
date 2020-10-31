@@ -17,6 +17,11 @@
 		<ng-template #isNotFriend>
 			<ng-container *ngIf="state.isFriendshipRequestFrom">
 				<div>Friendship Requested</div>
+				<button (click)="acceptFriendshipRequest()">Accept</button>
+				<button (click)="denyFriendshipRequest()">Deny</button>
+			</ng-container>
+			<ng-container *ngIf="state.isFriendshipRequestTo">
+				<div>Friendship Requested</div>
 				<button (click)="cancelFriendshipRequest()">Cancel</button>
 			</ng-container>
 			<button

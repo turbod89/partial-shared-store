@@ -7,16 +7,11 @@ import {
   DeleteFriendAction,
 } from '../../actions';
 import { Action, ActionTypes } from '../../actions/friendship-requests';
-import { UserModel } from '../../models';
 import { SocialState } from '../../state';
 import {
   deserializeFriendshipRequestModel,
   SerializedFriendshipRequestModel,
   serializeFriendshipRequestModel,
-  SerializedUserModel,
-  serializeKnownUser,
-  SerializedKnownUserModel,
-  deserializeUser,
 } from '../models';
 
 export interface SerializedCreateFriendshipRequestAction {

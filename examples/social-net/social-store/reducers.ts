@@ -9,7 +9,6 @@ import {
   DeleteUserAction,
   UpdateUserAction,
 } from './actions';
-import { FriendshipRequestModel } from './models';
 import { copyState, SocialState } from './state';
 import { SocialStore } from './store';
 
@@ -27,8 +26,21 @@ export const addReducers = function (store: SocialStore) {
       from[action.request.from.uuid] = from[action.request.from.uuid] || [];
       to[action.request.to.uuid] = to[action.request.to.uuid] || [];
 
-      from[action.request.from.uuid].push(action.request.to.uuid);
-      to[action.request.to.uuid].push(action.request.from.uuid);
+      const fromExists =
+        from[action.request.from.uuid].findIndex(
+          (uuid) => uuid === action.request.to.uuid,
+        ) >= 0;
+      if (!fromExists) {
+        from[action.request.from.uuid].push(action.request.to.uuid);
+      }
+
+      const toExists =
+        to[action.request.to.uuid].findIndex(
+          (uuid) => uuid === action.request.from.uuid,
+        ) >= 0;
+      if (!toExists) {
+        to[action.request.to.uuid].push(action.request.from.uuid);
+      }
 
       return newState;
     },
@@ -51,6 +63,9 @@ export const addReducers = function (store: SocialStore) {
         if (index >= 0) {
           from[action.request.from.uuid].splice(index, 1);
         }
+        if (from[action.request.from.uuid].length === 0) {
+          delete from[action.request.from.uuid];
+        }
       }
 
       if (to[action.request.to.uuid]) {
@@ -59,6 +74,9 @@ export const addReducers = function (store: SocialStore) {
         );
         if (index >= 0) {
           to[action.request.to.uuid].splice(index, 1);
+        }
+        if (to[action.request.to.uuid].length === 0) {
+          delete to[action.request.to.uuid];
         }
       }
 

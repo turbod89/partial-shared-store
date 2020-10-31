@@ -1,16 +1,16 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+
+import { SharedModule } from './shared/shared.module';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ProfileComponent } from './profile/profile.component';
-import { UserListComponent } from './user-list/user-list.component';
-import { UserListItemComponent } from './user-list/user-list-item/user-list-item.component';
+import { AllUsersComponent } from './all-users/all-users.component';
 
 @NgModule({
-  declarations: [AppComponent, ProfileComponent, UserListComponent, UserListItemComponent],
-  imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule],
+  declarations: [AppComponent, ProfileComponent, AllUsersComponent],
+  imports: [BrowserModule, AppRoutingModule, SharedModule],
   providers: [],
   bootstrap: [AppComponent],
 })

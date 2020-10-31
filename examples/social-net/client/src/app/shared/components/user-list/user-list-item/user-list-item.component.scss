@@ -1,0 +1,10 @@
+:host {
+  display: flex;
+  flex-flow: row;
+
+  background-color: var(--primary-color-background-light);
+  border-radius: 0.25em;
+  border: 1px solid var(--primary-color-dark);
+
+  padding: 1em;
+}

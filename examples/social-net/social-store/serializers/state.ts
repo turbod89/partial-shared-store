@@ -29,7 +29,9 @@ export const serializeSocialState = (
   return { users, friendshipRequests };
 };
 
-export const deserializeSocialState = (state: SerializedSocialState) => {
+export const deserializeSocialState = (
+  state: DeepReadonly<SerializedSocialState>,
+) => {
   const users = state.users.reduce<{ [uuid: string]: UserModel }>(
     (users, serializedUser) => {
       const user = deserializeUnknownUser(serializedUser);

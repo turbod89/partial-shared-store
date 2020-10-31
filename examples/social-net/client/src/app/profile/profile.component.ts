@@ -9,6 +9,7 @@ import {
   ActionRequestChangeOwnFieldTypes,
   ActionRequestTypes,
 } from 'social-store/action-requests';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -25,11 +26,11 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private router: Router,
     private psStore: PartiallySharedStoreService,
   ) {
     this.user$ = this.psStore.user$.pipe(
-      tap(console.log),
-      filter((user) => user),
+      filter((user) => !!user),
       tap((user) => this.profileForm.patchValue(user)),
     );
   }
@@ -52,5 +53,6 @@ export class ProfileComponent implements OnInit {
         },
       ],
     });
+    this.router.navigate(['/']);
   }
 }

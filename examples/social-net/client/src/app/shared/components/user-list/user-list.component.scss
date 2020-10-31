@@ -1,0 +1,7 @@
+:host {
+  display: flex;
+  flex-flow: column;
+  app-user-list-item + app-user-list-item {
+    margin-top: 1em;
+  }
+}

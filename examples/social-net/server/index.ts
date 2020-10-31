@@ -32,6 +32,8 @@ import {
   SerializedAction,
   SerializedActionRequest,
   serializeAction,
+  serializeSocialState,
+  SerializedSocialState,
 } from 'social-store/serializers';
 import { shadowSocialState, shadowAction } from 'social-store/shaders';
 import { isSerializedActionRequest } from 'social-store/serializers';
@@ -105,9 +107,9 @@ const onCloneRequest = (ws: WebSocket, data: any) => {
     return;
   }
   const request: CloneRequest = data as CloneRequest;
-  const cloneResponse: CloneResponse<SocialState> = createCloneResponse<
-    SocialState
-  >(shadowSocialState(state, id), request);
+  const cloneResponse: CloneResponse<SerializedSocialState> = createCloneResponse<
+    SerializedSocialState
+  >(serializeSocialState(shadowSocialState(state, id)), request);
   // Here we would serialize
   const cloneResponseData = JSON.parse(JSON.stringify(cloneResponse));
   send(ws, cloneResponseData);
