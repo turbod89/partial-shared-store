@@ -21,6 +21,7 @@ export const isActionRequest = (data: any): data is ActionRequest =>
 export {
   ChangeOwnFieldActionRequest,
   RequestFriendshipActionRequest,
+  UnfriendActionRequest,
   AcceptFriendshipRequestActionRequest,
   DenyFriendshipRequestActionRequest,
   CancelFriendshipRequestActionRequest,

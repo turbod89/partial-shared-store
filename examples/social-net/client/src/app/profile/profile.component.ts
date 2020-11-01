@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styles: [],
+  styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {
   public profileForm: FormGroup = this.fb.group({
@@ -38,6 +38,7 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {}
 
   updateProfile() {
+    console.log(this.profileForm);
     const profileFormValues = this.profileForm.value;
 
     this.psStore.dispatch({

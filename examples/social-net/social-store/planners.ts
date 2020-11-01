@@ -10,12 +10,14 @@ import {
   DenyFriendshipRequestActionRequest,
   DisconnectUserActionRequest,
   RequestFriendshipActionRequest,
+  UnfriendActionRequest,
 } from './action-requests';
 import {
   ActionTypes,
   AddFriendAction,
   CreateFriendshipRequestAction,
   CreateUserAction,
+  DeleteFriendAction,
   DeleteFriendshipRequestAction,
   DeleteUserAction,
   UpdateUserAction,
@@ -43,8 +45,8 @@ export const addPlanners = function (store: SocialStore) {
       request.updates.forEach(({ field, value }) => {
         if (field == ActionRequestChangeOwnFieldTypes.Name) {
           action.user.name = value;
-        } else if (field == ActionRequestChangeOwnFieldTypes.Status) {
-          action.user.status = value;
+        } else if (field == ActionRequestChangeOwnFieldTypes.ImageUrl) {
+          action.user.imageUrl = value;
         } else if (field == ActionRequestChangeOwnFieldTypes.ScreenName) {
           action.user.screenName = value;
         }
@@ -141,6 +143,33 @@ export const addPlanners = function (store: SocialStore) {
           type: ActionTypes.DeleteFriendshipRequest,
           request: fsRequest,
           onlyTo: [fsRequest.from, fsRequest.to],
+        },
+      ];
+    },
+  );
+
+  store.createPlanner(
+    ActionRequestTypes.Unfriend,
+    (
+      state: DeepReadonly<SocialState>,
+      request: UnfriendActionRequest,
+    ): [DeleteFriendAction] => {
+      const fsRequest = {
+        from: request.author,
+        to: request.to,
+      };
+      const fromFriends: UserModel[] = Array.from(fsRequest.from.friends || [])
+        .map((uuid: string) => state.users[uuid])
+        .map(copyUserModel);
+      const toFriends: UserModel[] = Array.from(fsRequest.to.friends || [])
+        .map((uuid: string) => state.users[uuid])
+        .map(copyUserModel);
+      return [
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.DeleteFriend,
+          request: fsRequest,
+          onlyTo: [request.to, request.author, ...fromFriends, ...toFriends],
         },
       ];
     },

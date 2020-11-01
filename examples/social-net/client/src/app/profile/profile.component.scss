@@ -1,0 +1,35 @@
+:host {
+  form {
+    display: flex;
+    flex-flow: column;
+    padding: 1em;
+
+    background-color: var(--primary-color-background-light);
+    border: 1px solid var(--primary-color-dark);
+    border-radius: var(--primary-border-radius);
+
+    .field {
+      display: flex;
+      flex-flow: column;
+      align-items: flex-start;
+
+      label {
+        margin-bottom: 0.5em;
+      }
+
+      input[type='text'] {
+        padding: 0.5em 1em 0.5em 1em;
+
+        border: 1px solid var(--primary-color-dark);
+        border-radius: var(--primary-border-radius);
+      }
+      input[type='text']:focus {
+        border-color: var(--primary-color-text);
+      }
+    }
+
+    .field + .field {
+      margin-top: 1em;
+    }
+  }
+}

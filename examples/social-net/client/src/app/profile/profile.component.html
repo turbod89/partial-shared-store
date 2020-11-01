@@ -1,15 +1,18 @@
-<h1>Profile</h1>
-<form *ngIf="(user$ | async) as user"
-	[formGroup]="profileForm" (ngSubmit)="updateProfile()"
+<h2>Profile</h2>
+<form
+	*ngIf="(user$ | async) as user"
+	[formGroup]="profileForm"
+	(ngSubmit)="updateProfile()"
 >
-	<div>Status: {{ user.status }}</div>
-	<div>
+	<div class="field">
 		<label for="name">Name</label>
 		<input id="name" formControlName="name" type="text">
 	</div>
-	<div>
+	<div class="field">
 		<label for="screenName">Screen Name</label>
 		<input id="screenName" formControlName="screenName" type="text">
 	</div>
-	<button type="submit">Update and Return</button>
+	<div class="field">
+		<app-button class="accent" type="submit">Update and Return</app-button>
+	</div>
 </form>

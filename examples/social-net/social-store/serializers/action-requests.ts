@@ -6,6 +6,7 @@ import {
   ActionRequestTypes,
   ChangeOwnFieldActionRequest,
   RequestFriendshipActionRequest,
+  UnfriendActionRequest,
   DenyFriendshipRequestActionRequest,
   CancelFriendshipRequestActionRequest,
   ActionRequest,
@@ -25,7 +26,7 @@ import {
 export type SerializedActionRequestChangeOwnFieldTypes =
   | 'name'
   | 'display-name'
-  | 'status';
+  | 'image-url';
 const serializeActionRequestChangeOwnFieldType = (
   field: ActionRequestChangeOwnFieldTypes,
 ): SerializedActionRequestChangeOwnFieldTypes => {
@@ -36,8 +37,11 @@ const serializeActionRequestChangeOwnFieldType = (
     case ActionRequestChangeOwnFieldTypes.ScreenName: {
       return 'display-name';
     }
+    case ActionRequestChangeOwnFieldTypes.ImageUrl: {
+      return 'image-url';
+    }
     default: {
-      return 'status';
+      return 'name';
     }
   }
 };
@@ -51,8 +55,11 @@ const deserializeActionRequestChangeOwnFieldType = (
     case 'display-name': {
       return ActionRequestChangeOwnFieldTypes.ScreenName;
     }
+    case 'image-url': {
+      return ActionRequestChangeOwnFieldTypes.ImageUrl;
+    }
     default: {
-      return ActionRequestChangeOwnFieldTypes.Status;
+      return ActionRequestChangeOwnFieldTypes.Name;
     }
   }
 };
@@ -111,6 +118,30 @@ export const deserializeRequestFriendshipActionRequest = (
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
   type: ActionRequestTypes.RequestFriendship,
+  to: deserializeKnownUser(data.to, state),
+});
+
+export interface SerializedUnfriendActionRequest {
+  uuid: string;
+  author: string;
+  type: 'Unfriend';
+  to: string;
+}
+export const serializeUnfriendActionRequest = (
+  request: UnfriendActionRequest,
+): SerializedUnfriendActionRequest => ({
+  uuid: request.uuid,
+  author: request.author.uuid,
+  type: 'Unfriend',
+  to: serializeKnownUser(request.to),
+});
+export const deserializeUnfriendActionRequest = (
+  data: SerializedUnfriendActionRequest,
+  state: DeepReadonly<SocialState>,
+): UnfriendActionRequest => ({
+  uuid: data.uuid,
+  author: deserializeKnownUser(data.author, state),
+  type: ActionRequestTypes.Unfriend,
   to: deserializeKnownUser(data.to, state),
 });
 
@@ -237,6 +268,7 @@ export const deserializeDisconnectUserActionRequest = (
 export type SerializedActionRequest =
   | SerializedChangeOwnFieldActionRequest
   | SerializedRequestFriendshipActionRequest
+  | SerializedUnfriendActionRequest
   | SerializedAcceptFriendshipRequestActionRequest
   | SerializedDenyFriendshipRequestActionRequest
   | SerializedCancelFriendshipRequestActionRequest
@@ -255,6 +287,8 @@ export const serializeActionRequest = (
       return serializeRequestFriendshipActionRequest(
         request as RequestFriendshipActionRequest,
       );
+    case ActionRequestTypes.Unfriend:
+      return serializeUnfriendActionRequest(request as UnfriendActionRequest);
     case ActionRequestTypes.AcceptFriendshipRequest:
       return serializeAcceptFriendshipRequestActionRequest(
         request as AcceptFriendshipRequestActionRequest,
@@ -292,6 +326,11 @@ export const deserializeActionRequest = (
     case ActionRequestTypes.RequestFriendship:
       return deserializeRequestFriendshipActionRequest(
         request as SerializedRequestFriendshipActionRequest,
+        state,
+      );
+    case ActionRequestTypes.Unfriend:
+      return deserializeUnfriendActionRequest(
+        request as SerializedUnfriendActionRequest,
         state,
       );
     case ActionRequestTypes.AcceptFriendshipRequest:

@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { Router } from '@angular/router';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 import { Observable } from 'rxjs';
 import { map, tap, withLatestFrom } from 'rxjs/operators';
@@ -18,7 +19,10 @@ export class UserListItemComponent implements OnInit {
   public isFriendshipRequestFrom$: Observable<boolean>;
   public isFriendshipRequestTo$: Observable<boolean>;
 
-  constructor(private psStore: PartiallySharedStoreService) {
+  constructor(
+    private router: Router,
+    private psStore: PartiallySharedStoreService,
+  ) {
     this.isMe$ = this.psStore.user$.pipe(
       map((me) => !!me && me.uuid === this.user.uuid),
       //tap((isMe) => console.log(`Is me: ${isMe}`)),
@@ -53,6 +57,10 @@ export class UserListItemComponent implements OnInit {
 
   public ngOnInit(): void {}
 
+  public goToProfile(): void {
+    this.router.navigate(['/profile']);
+  }
+
   public requestFriendship() {
     this.psStore.dispatch({
       type: ActionRequestTypes.RequestFriendship,
@@ -78,6 +86,13 @@ export class UserListItemComponent implements OnInit {
     this.psStore.dispatch({
       type: ActionRequestTypes.AcceptFriendshipRequest,
       from: copyUserModel(this.user),
+    });
+  }
+
+  public unfriend() {
+    this.psStore.dispatch({
+      type: ActionRequestTypes.Unfriend,
+      to: copyUserModel(this.user),
     });
   }
 }

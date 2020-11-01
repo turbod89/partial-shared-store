@@ -1,5 +1,5 @@
 import { ActionRequest as DefaultActionRequestBase } from 'partially-shared-store';
-import { FriendshipRequestModel, UserModel } from '../models';
+import { UserModel } from '../models';
 
 interface ActionRequestBase extends DefaultActionRequestBase {
   author: UserModel;
@@ -8,6 +8,7 @@ interface ActionRequestBase extends DefaultActionRequestBase {
 export enum ActionRequestTypes {
   ChangeOwnField = 'ChangeOwnField',
   RequestFriendship = 'RequestFriendship',
+  Unfriend = 'Unfriend',
   AcceptFriendshipRequest = 'AcceptFriendshipRequest',
   DenyFriendshipRequest = 'DenyFriendshipRequest',
   CancelFriendshipRequest = 'CancelFriendshipRequest',
@@ -16,7 +17,7 @@ export enum ActionRequestTypes {
 export enum ActionRequestChangeOwnFieldTypes {
   Name = 'Name',
   ScreenName = 'ScreenName',
-  Status = 'Status',
+  ImageUrl = 'ImageUrl',
 }
 
 export interface ChangeOwnFieldActionRequest extends ActionRequestBase {
@@ -25,6 +26,11 @@ export interface ChangeOwnFieldActionRequest extends ActionRequestBase {
     field: ActionRequestChangeOwnFieldTypes;
     value: string;
   }[];
+}
+
+export interface UnfriendActionRequest extends ActionRequestBase {
+  type: ActionRequestTypes.Unfriend;
+  to: UserModel;
 }
 
 export interface RequestFriendshipActionRequest extends ActionRequestBase {
@@ -52,6 +58,7 @@ export interface CancelFriendshipRequestActionRequest
 export type ActionRequest =
   | ChangeOwnFieldActionRequest
   | RequestFriendshipActionRequest
+  | UnfriendActionRequest
   | AcceptFriendshipRequestActionRequest
   | DenyFriendshipRequestActionRequest
   | CancelFriendshipRequestActionRequest;

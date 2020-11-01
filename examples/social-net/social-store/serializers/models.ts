@@ -8,6 +8,7 @@ export interface SerializedUnknownUserModel extends Model {
   name?: string;
   status?: string;
   friends?: string[];
+  imageUrl?: string;
 }
 
 export type SerializedUserModel =
@@ -38,6 +39,9 @@ export const serializeUnknownUser = (
   if (user.friends) {
     serializedUser.friends = [...user.friends] as string[];
   }
+  if (user.imageUrl) {
+    serializedUser.imageUrl = user.imageUrl;
+  }
   return serializedUser;
 };
 export const deserializeUnknownUser = (
@@ -55,6 +59,9 @@ export const deserializeUnknownUser = (
   }
   if (user.friends) {
     newUserModel.friends = new Set<string>(user.friends);
+  }
+  if (user.imageUrl) {
+    newUserModel.imageUrl = user.imageUrl;
   }
   return newUserModel;
 };

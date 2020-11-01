@@ -3,9 +3,16 @@
 
 :root {
   --primary-color-text: rgb(29 40 48);
+  --primary-color-text-light: rgb(58 80 96);
   --primary-color-background: rgb(247 247 247);
   --primary-color-background-light: white;
   --primary-color-dark: rgb(217 217 217);
+
+  --secondary-color-text: rgb(247 247 247);
+  --secondary-color-background: rgb(29 40 48);
+  --secondary-color-border: rgb(217 217 217);
+
+  --primary-border-radius: 4px;
 }
 
 html {

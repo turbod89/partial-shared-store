@@ -11,6 +11,7 @@ export interface UserModel extends Identity {
   name?: string;
   status?: string;
   friends?: Set<string>;
+  imageUrl?: string;
 }
 
 export const createUserModel = (): UserModel => ({
@@ -31,6 +32,9 @@ export const copyUserModel = (user: DeepReadonly<UserModel>): UserModel => {
   }
   if (user.friends) {
     newUserModel.friends = new Set<string>([...user.friends]);
+  }
+  if (user.imageUrl) {
+    newUserModel.imageUrl = user.imageUrl;
   }
   return newUserModel;
 };
