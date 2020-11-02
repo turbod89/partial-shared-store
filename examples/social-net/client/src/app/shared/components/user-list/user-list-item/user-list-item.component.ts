@@ -18,6 +18,10 @@ export class UserListItemComponent implements OnInit {
   public isFriend$: Observable<boolean>;
   public isFriendshipRequestFrom$: Observable<boolean>;
   public isFriendshipRequestTo$: Observable<boolean>;
+  public get avatarUrl() {
+    const url = this.user.imageUrl;
+    return url || '/assets/default-avatar-icon.svg';
+  }
 
   constructor(
     private router: Router,

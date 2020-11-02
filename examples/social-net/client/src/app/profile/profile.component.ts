@@ -18,11 +18,17 @@ import { Router } from '@angular/router';
 })
 export class ProfileComponent implements OnInit {
   public profileForm: FormGroup = this.fb.group({
+    imageUrl: [''],
     name: [''],
     screenName: [''],
   });
 
   public user$: Observable<DeepReadonly<UserModel>>;
+
+  public get avatarUrl() {
+    const url = this.profileForm.get('imageUrl').value;
+    return url || '/assets/default-avatar-icon.svg';
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -51,6 +57,10 @@ export class ProfileComponent implements OnInit {
         {
           field: ActionRequestChangeOwnFieldTypes.ScreenName,
           value: profileFormValues.screenName,
+        },
+        {
+          field: ActionRequestChangeOwnFieldTypes.ImageUrl,
+          value: profileFormValues.imageUrl,
         },
       ],
     });

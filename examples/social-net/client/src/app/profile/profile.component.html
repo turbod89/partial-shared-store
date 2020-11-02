@@ -5,6 +5,16 @@
 	(ngSubmit)="updateProfile()"
 >
 	<div class="field">
+		<img
+			class="avatar"
+			[ngStyle]="{
+				'background-image': 'url('+avatarUrl+')'
+			}"
+		/>
+		<label>Image URL</label>
+		<input formControlName="imageUrl" type="text"/>
+	</div>
+	<div class="field">
 		<label for="name">Name</label>
 		<input id="name" formControlName="name" type="text">
 	</div>

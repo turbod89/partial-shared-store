@@ -13,6 +13,9 @@
 			'connected': user.status=='Connected',
 			'disconnected': user.status=='Disconnected'
 		}"
+		[ngStyle]="{
+			'background-image': 'url(' + avatarUrl + ')'
+		}"
 	></div>
 	<div class="body">
 		<em>{{user.screenName}}</em>

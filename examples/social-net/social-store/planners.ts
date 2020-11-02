@@ -19,7 +19,6 @@ import {
   CreateUserAction,
   DeleteFriendAction,
   DeleteFriendshipRequestAction,
-  DeleteUserAction,
   UpdateUserAction,
 } from './actions';
 import { copyUserModel, UserModel, UserModelStatus } from './models';
@@ -120,7 +119,12 @@ export const addPlanners = function (store: SocialStore) {
     (
       state: DeepReadonly<SocialState>,
       request: AcceptFriendshipRequestActionRequest,
-    ): [AddFriendAction, DeleteFriendshipRequestAction] => {
+    ): [
+      AddFriendAction,
+      DeleteFriendshipRequestAction,
+      UpdateUserAction,
+      UpdateUserAction,
+    ] => {
       const fsRequest = {
         from: request.from,
         to: request.author,
@@ -144,6 +148,18 @@ export const addPlanners = function (store: SocialStore) {
           request: fsRequest,
           onlyTo: [fsRequest.from, fsRequest.to],
         },
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.UpdateUser,
+          user: fsRequest.from,
+          onlyTo: [fsRequest.to],
+        },
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.UpdateUser,
+          user: fsRequest.to,
+          onlyTo: [fsRequest.from],
+        },
       ];
     },
   );
@@ -153,7 +169,7 @@ export const addPlanners = function (store: SocialStore) {
     (
       state: DeepReadonly<SocialState>,
       request: UnfriendActionRequest,
-    ): [DeleteFriendAction] => {
+    ): [DeleteFriendAction, UpdateUserAction, UpdateUserAction] => {
       const fsRequest = {
         from: request.author,
         to: request.to,
@@ -170,6 +186,18 @@ export const addPlanners = function (store: SocialStore) {
           type: ActionTypes.DeleteFriend,
           request: fsRequest,
           onlyTo: [request.to, request.author, ...fromFriends, ...toFriends],
+        },
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.UpdateUser,
+          user: fsRequest.from,
+          onlyTo: [fsRequest.to],
+        },
+        {
+          uuid: uuidv4(),
+          type: ActionTypes.UpdateUser,
+          user: fsRequest.to,
+          onlyTo: [fsRequest.from],
         },
       ];
     },
