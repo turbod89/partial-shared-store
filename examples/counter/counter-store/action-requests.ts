@@ -10,7 +10,7 @@ export enum ActionRequestTypes {
   Remove = 'Remove',
   Create = 'Create',
 }
-export const dataIsActionRequest = (data: any): boolean =>
+export const isActionRequest = (data: any): boolean =>
   'type' in data && data.type in ActionRequestTypes;
 
 export interface IncrementActionRequest extends ActionRequestBase {

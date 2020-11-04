@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   CloneRequest,
   CloneResponse,
+  DeepReadonly,
   Identity,
   IdentityRequest,
   IdentityResponse,
@@ -47,8 +48,8 @@ export const createCloneRequest = (): CloneRequest => ({
 });
 
 export const createCloneResponse = <CustomState extends State>(
-  state: CustomState,
-  request: CloneRequest,
+  state: DeepReadonly<CustomState>,
+  request: DeepReadonly<CloneRequest>,
 ): CloneResponse<CustomState> => ({
   uuid: uuidv4(),
   type: 'CloneResponse',
@@ -60,22 +61,24 @@ export const createIdentity = (): Identity => ({
   uuid: uuidv4(),
 });
 
-export const dataIsVersionRequest = (data: any): boolean =>
+export const isVersionRequest = (data: any): data is VersionRequest =>
   'type' in data && data.type === 'VersionRequest';
 
-export const dataIsVersionResponse = (data: any): boolean =>
+export const isVersionResponse = (data: any): data is VersionResponse =>
   'type' in data && data.type === 'VersionResponse';
 
-export const dataIsIdentityRequest = (data: any): boolean =>
+export const isIdentityRequest = (data: any): data is IdentityRequest =>
   'type' in data && data.type === 'IdentityRequest';
 
-export const dataIsIdentityResponse = (data: any): boolean =>
+export const isIdentityResponse = (data: any): data is IdentityResponse =>
   'type' in data && data.type === 'IdentityResponse';
 
-export const dataIsCloneRequest = (data: any): boolean =>
+export const isCloneRequest = (data: any): data is CloneRequest =>
   'type' in data && data.type === 'CloneRequest';
 
-export const dataIsCloneResponse = (data: any): boolean =>
+export const isCloneResponse = <CustomState extends State>(
+  data: any,
+): data is CloneResponse<CustomState> =>
   'type' in data && data.type === 'CloneResponse';
 
 export class IdentityMapping<T, I extends Identity = Identity> {

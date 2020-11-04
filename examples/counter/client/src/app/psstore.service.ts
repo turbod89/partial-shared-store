@@ -3,16 +3,16 @@ import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 import { map } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 import { createStore, Request, Response } from 'counter-store';
-import { Action, dataIsAction } from 'counter-store/actions';
+import { Action, isAction } from 'counter-store/actions';
 import { ActionRequest } from 'counter-store/action-requests';
 import { CounterState } from 'counter-store/state';
 import {
   createCloneRequest,
   createIdentity,
   createIdentityRequest,
-  dataIsCloneResponse,
-  dataIsIdentityResponse,
-  dataIsVersionResponse,
+  isCloneResponse,
+  isIdentityResponse,
+  isVersionResponse,
   CloneRequest,
   CloneResponse,
   Identity,
@@ -58,13 +58,13 @@ export class PartiallySharedStoreService {
       );
       this.responses$.subscribe((data: object) => {
         console.log(data);
-        if (dataIsAction(data)) {
+        if (isAction(data)) {
           this.onAction(data as SerializedAction);
-        } else if (dataIsVersionResponse(data)) {
+        } else if (isVersionResponse(data)) {
           this.onVersionResponse(data);
-        } else if (dataIsIdentityResponse(data)) {
+        } else if (isIdentityResponse(data)) {
           this.onIdentityResponse(data);
-        } else if (dataIsCloneResponse(data)) {
+        } else if (isCloneResponse(data)) {
           this.onCloneResponse(data);
         }
       });
