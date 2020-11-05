@@ -19,7 +19,6 @@ export const isActionRequest = (data: any): data is ActionRequest =>
 
 // export action requests
 export {
-  ChangeOwnFieldActionRequest,
   RequestFriendshipActionRequest,
   UnfriendActionRequest,
   AcceptFriendshipRequestActionRequest,
@@ -27,7 +26,11 @@ export {
   CancelFriendshipRequestActionRequest,
 } from './friendship-request';
 
-export { ConnectUserActionRequest, DisconnectUserActionRequest } from './user';
+export {
+  ChangeOwnFieldActionRequest,
+  ConnectUserActionRequest,
+  DisconnectUserActionRequest,
+} from './user';
 
 // export specific
-export { ActionRequestChangeOwnFieldTypes } from './friendship-request';
+export { ActionRequestChangeOwnFieldTypes } from './user';

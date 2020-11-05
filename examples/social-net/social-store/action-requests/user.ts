@@ -6,8 +6,23 @@ interface ActionRequestBase extends DefaultActionRequestBase {
 }
 
 export enum ActionRequestTypes {
+  ChangeOwnField = 'ChangeOwnField',
   ConnectUser = 'ConnectUser',
   DisconnectUser = 'DisconnectUser',
+}
+
+export enum ActionRequestChangeOwnFieldTypes {
+  Name = 'Name',
+  ScreenName = 'ScreenName',
+  ImageUrl = 'ImageUrl',
+}
+
+export interface ChangeOwnFieldActionRequest extends ActionRequestBase {
+  type: ActionRequestTypes.ChangeOwnField;
+  updates: {
+    field: ActionRequestChangeOwnFieldTypes;
+    value: string;
+  }[];
 }
 
 export interface ConnectUserActionRequest extends ActionRequestBase {
@@ -21,6 +36,7 @@ export interface DisconnectUserActionRequest extends ActionRequestBase {
 }
 
 export type ActionRequest =
+  | ChangeOwnFieldActionRequest
   | ConnectUserActionRequest
   | DisconnectUserActionRequest;
 
