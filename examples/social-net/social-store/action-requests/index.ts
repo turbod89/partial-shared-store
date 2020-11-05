@@ -1,5 +1,5 @@
 import * as FriendshipRequest from './friendship-request';
-import * as User from './user';
+import * as User from 'user-store/action-requests';
 
 // merge action request types
 export const ActionRequestTypes = Object.assign(
@@ -19,7 +19,6 @@ export const isActionRequest = (data: any): data is ActionRequest =>
 
 // export action requests
 export {
-  ChangeOwnFieldActionRequest,
   RequestFriendshipActionRequest,
   UnfriendActionRequest,
   AcceptFriendshipRequestActionRequest,
@@ -27,7 +26,11 @@ export {
   CancelFriendshipRequestActionRequest,
 } from './friendship-request';
 
-export { ConnectUserActionRequest, DisconnectUserActionRequest } from './user';
+export {
+  UpdateOwnActionRequest,
+  ConnectUserActionRequest,
+  DisconnectUserActionRequest,
+} from 'user-store/action-requests';
 
 // export specific
-export { ActionRequestChangeOwnFieldTypes } from './friendship-request';
+export { ActionRequestUpdateOwnTypes } from 'user-store/action-requests';

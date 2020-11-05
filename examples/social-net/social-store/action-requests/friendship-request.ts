@@ -6,26 +6,11 @@ interface ActionRequestBase extends DefaultActionRequestBase {
 }
 
 export enum ActionRequestTypes {
-  ChangeOwnField = 'ChangeOwnField',
   RequestFriendship = 'RequestFriendship',
   Unfriend = 'Unfriend',
   AcceptFriendshipRequest = 'AcceptFriendshipRequest',
   DenyFriendshipRequest = 'DenyFriendshipRequest',
   CancelFriendshipRequest = 'CancelFriendshipRequest',
-}
-
-export enum ActionRequestChangeOwnFieldTypes {
-  Name = 'Name',
-  ScreenName = 'ScreenName',
-  ImageUrl = 'ImageUrl',
-}
-
-export interface ChangeOwnFieldActionRequest extends ActionRequestBase {
-  type: ActionRequestTypes.ChangeOwnField;
-  updates: {
-    field: ActionRequestChangeOwnFieldTypes;
-    value: string;
-  }[];
 }
 
 export interface UnfriendActionRequest extends ActionRequestBase {
@@ -56,7 +41,6 @@ export interface CancelFriendshipRequestActionRequest
 }
 
 export type ActionRequest =
-  | ChangeOwnFieldActionRequest
   | RequestFriendshipActionRequest
   | UnfriendActionRequest
   | AcceptFriendshipRequestActionRequest

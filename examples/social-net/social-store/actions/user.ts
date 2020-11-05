@@ -1,31 +1,22 @@
-import { Action as ActionBase } from 'partially-shared-store';
-import { UserModel } from '../models';
+import {
+  CreateUserAction as CreateUserActionBase,
+  UpdateUserAction as UpdateUserActionBase,
+  DeleteUserAction as DeleteUserActionBase,
+} from 'user-store/actions';
+import { UserModel } from 'user-store/models';
 
-export enum ActionTypes {
-  CreateUser = 'CreateUser',
-  UpdateUser = 'UpdateUser',
-  DeleteUser = 'DeleteUser',
-}
+export { ActionTypes, isAction } from 'user-store/actions';
 
-export interface CreateUserAction extends ActionBase {
-  type: ActionTypes.CreateUser;
-  user: UserModel;
+export interface CreateUserAction extends CreateUserActionBase {
   onlyTo?: UserModel[];
 }
 
-export interface UpdateUserAction extends ActionBase {
-  type: ActionTypes.UpdateUser;
-  user: UserModel;
+export interface UpdateUserAction extends UpdateUserActionBase {
   onlyTo?: UserModel[];
 }
 
-export interface DeleteUserAction extends ActionBase {
-  type: ActionTypes.DeleteUser;
-  user: UserModel;
+export interface DeleteUserAction extends DeleteUserActionBase {
   onlyTo?: UserModel[];
 }
 
 export type Action = CreateUserAction | UpdateUserAction | DeleteUserAction;
-
-export const isAction = (data: any): data is Action =>
-  'type' in data && data['type'] in ActionTypes;

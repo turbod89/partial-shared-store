@@ -1,15 +1,17 @@
 import { DeepReadonly } from 'partially-shared-store/definitions';
-import { FriendshipRequestModel, UserModel } from '../models';
-import { SocialState } from '../state';
 import {
-  deserializeUnknownUser,
-  SerializedUnknownUserModel,
-  serializeUnknownUser,
-} from './models';
+  deserializeUserState,
+  serializeUserState,
+  SerializedUserState,
+} from 'user-store/serializers';
+import { SocialState } from '../state';
 
 export interface SerializedSocialState {
-  users: SerializedUnknownUserModel[];
+  users: SerializedUserState;
   friendshipRequests: {
+    [uuid: string]: string[];
+  };
+  friendships: {
     [uuid: string]: string[];
   };
 }
@@ -17,35 +19,32 @@ export interface SerializedSocialState {
 export const serializeSocialState = (
   state: DeepReadonly<SocialState>,
 ): SerializedSocialState => {
-  const users: SerializedUnknownUserModel[] = Object.keys(state.users)
-    .map((key) => state.users[key])
-    .map(serializeUnknownUser);
   const friendshipRequests: { [uuid: string]: string[] } = {};
+  const friendships: { [uuid: string]: string[] } = {};
 
   for (const uuid in state.friendshipRequests.from) {
     friendshipRequests[uuid] = state.friendshipRequests.from[uuid].slice();
   }
 
-  return { users, friendshipRequests };
+  for (const uuid in state.friendships) {
+    friendships[uuid] = [...state.friendships[uuid].values()];
+  }
+
+  return {
+    users: serializeUserState(state.users),
+    friendshipRequests,
+    friendships,
+  };
 };
 
 export const deserializeSocialState = (
-  state: DeepReadonly<SerializedSocialState>,
+  serializedState: DeepReadonly<SerializedSocialState>,
 ) => {
-  const users = state.users.reduce<{ [uuid: string]: UserModel }>(
-    (users, serializedUser) => {
-      const user = deserializeUnknownUser(serializedUser);
-      users[user.uuid] = user;
-      return users;
-    },
-    {},
-  );
-
   const frsFrom: { [uuid: string]: string[] } = {};
   const frsTo: { [uuid: string]: string[] } = {};
 
-  for (const fromUuid in state.friendshipRequests) {
-    state.friendshipRequests[fromUuid].forEach((toUuid) => {
+  for (const fromUuid in serializedState.friendshipRequests) {
+    serializedState.friendshipRequests[fromUuid].forEach((toUuid) => {
       frsFrom[fromUuid] = frsFrom[fromUuid] || ([] as string[]);
       frsTo[toUuid] = frsTo[toUuid] || ([] as string[]);
 
@@ -59,5 +58,14 @@ export const deserializeSocialState = (
     to: frsTo,
   };
 
-  return { users, friendshipRequests };
+  const friendships: { [uuid: string]: Set<string> } = {};
+  for (const uuid in serializedState.friendships) {
+    friendships[uuid] = new Set(serializedState.friendships[uuid]);
+  }
+
+  return {
+    users: deserializeUserState(serializedState.users),
+    friendshipRequests,
+    friendships,
+  };
 };

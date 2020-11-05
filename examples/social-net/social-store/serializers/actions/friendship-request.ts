@@ -1,22 +1,26 @@
 import { DeepReadonly } from 'partially-shared-store/definitions';
 import { PartiallySharedStoreError } from 'partially-shared-store/errors';
+import { serializeKnownUser } from 'user-store/serializers';
 import {
   CreateFriendshipRequestAction,
   DeleteFriendshipRequestAction,
   AddFriendAction,
   DeleteFriendAction,
 } from '../../actions';
-import { Action, ActionTypes } from '../../actions/friendship-requests';
+import { Action, ActionTypes } from '../../actions';
 import { SocialState } from '../../state';
+import { UserModel } from '../../models';
 import {
   deserializeFriendshipRequestModel,
+  deserializeUser,
   SerializedFriendshipRequestModel,
+  SerializedUserModel,
   serializeFriendshipRequestModel,
 } from '../models';
 
 export interface SerializedCreateFriendshipRequestAction {
   uuid: string;
-  type: ActionTypes.CreateFriendshipRequest;
+  type: ActionTypes['CreateFriendshipRequest'];
   request: SerializedFriendshipRequestModel;
 }
 export const serializeCreateFriendshipRequestAction = (
@@ -37,7 +41,7 @@ export const deserializeCreateFriendshipRequestAction = (
 
 export interface SerializedDeleteFriendshipRequestAction {
   uuid: string;
-  type: ActionTypes.DeleteFriendshipRequest;
+  type: ActionTypes['DeleteFriendshipRequest'];
   request: SerializedFriendshipRequestModel;
 }
 export const serializeDeleteFriendshipRequestAction = (
@@ -58,15 +62,18 @@ export const deserializeDeleteFriendshipRequestAction = (
 
 export interface SerializedAddFriendAction {
   uuid: string;
-  type: ActionTypes.AddFriend;
-  request: SerializedFriendshipRequestModel;
+  type: ActionTypes['AddFriend'];
+  users: [SerializedUserModel, SerializedUserModel];
 }
 export const serializeAddFriendAction = (
   action: AddFriendAction,
 ): SerializedAddFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  request: serializeFriendshipRequestModel(action.request),
+  users: action.users.map(serializeKnownUser) as [
+    SerializedUserModel,
+    SerializedUserModel,
+  ],
 });
 export const deserializeAddFriendAction = (
   action: SerializedAddFriendAction,
@@ -74,20 +81,26 @@ export const deserializeAddFriendAction = (
 ): AddFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  request: deserializeFriendshipRequestModel(action.request, state),
+  users: action.users.map((user) => deserializeUser(user, state.users)) as [
+    UserModel,
+    UserModel,
+  ],
 });
 
 export interface SerializedDeleteFriendAction {
   uuid: string;
-  type: ActionTypes.DeleteFriend;
-  request: SerializedFriendshipRequestModel;
+  type: ActionTypes['DeleteFriend'];
+  users: [SerializedUserModel, SerializedUserModel];
 }
 export const serializeDeleteFriendAction = (
   action: DeleteFriendAction,
 ): SerializedDeleteFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  request: serializeFriendshipRequestModel(action.request),
+  users: action.users.map(serializeKnownUser) as [
+    SerializedUserModel,
+    SerializedUserModel,
+  ],
 });
 export const deserializeDeleteFriendAction = (
   action: SerializedDeleteFriendAction,
@@ -95,7 +108,10 @@ export const deserializeDeleteFriendAction = (
 ): DeleteFriendAction => ({
   uuid: action.uuid,
   type: action.type,
-  request: deserializeFriendshipRequestModel(action.request, state),
+  users: action.users.map((user) => deserializeUser(user, state.users)) as [
+    UserModel,
+    UserModel,
+  ],
 });
 
 export type SerializedAction =
@@ -123,32 +139,31 @@ export const serializeAction = (action: Action): SerializedAction => {
 };
 
 export const deserializeAction = (
-  action: SerializedAction,
+  serializedAction: SerializedAction,
   state: DeepReadonly<SocialState>,
 ): Action => {
-  switch (action.type) {
+  switch (serializedAction.type) {
     case ActionTypes.CreateFriendshipRequest:
       return deserializeCreateFriendshipRequestAction(
-        action as SerializedCreateFriendshipRequestAction,
+        serializedAction as SerializedCreateFriendshipRequestAction,
         state,
       );
     case ActionTypes.DeleteFriendshipRequest:
       return deserializeDeleteFriendshipRequestAction(
-        action as SerializedDeleteFriendshipRequestAction,
+        serializedAction as SerializedDeleteFriendshipRequestAction,
         state,
       );
     case ActionTypes.AddFriend:
       return deserializeAddFriendAction(
-        action as SerializedAddFriendAction,
+        serializedAction as SerializedAddFriendAction,
         state,
       );
     case ActionTypes.DeleteFriend:
       return deserializeDeleteFriendAction(
-        action as SerializedDeleteFriendAction,
+        serializedAction as SerializedDeleteFriendAction,
         state,
       );
   }
-  throw new PartiallySharedStoreError('Unknown action type');
 };
 
 export const isSerializedAction = (data: any): data is SerializedAction =>

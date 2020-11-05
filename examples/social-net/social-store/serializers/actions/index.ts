@@ -1,7 +1,7 @@
-import * as User from './user';
+import * as User from 'user-store/serializers/actions';
 import * as FriendshipRequest from './friendship-request';
 import { Action } from '../../actions';
-import { isAction as isUserAction } from '../../actions/user';
+import { isAction as isUserAction } from 'user-store/actions';
 import { isAction as isFriendshipRequestAction } from '../../actions/friendship-requests';
 import { PartiallySharedStoreError } from 'partially-shared-store/errors';
 import { DeepReadonly } from 'partially-shared-store/definitions';
@@ -25,7 +25,7 @@ export const deserializeAction = (
   state: DeepReadonly<SocialState>,
 ): Action => {
   if (User.isSerializedAction(action)) {
-    return User.deserializeAction(action, state);
+    return User.deserializeAction(action, state.users);
   } else if (FriendshipRequest.isSerializedAction(action)) {
     return FriendshipRequest.deserializeAction(action, state);
   }

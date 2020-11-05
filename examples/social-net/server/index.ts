@@ -14,13 +14,12 @@ import {
   isVersionRequest,
 } from 'partially-shared-store';
 import {
-  createStore,
   createIdentityResponse,
   isIdentityRequest,
   IdentityRequest,
   IdentityResponse,
-} from 'social-store';
-import { SocialStore } from 'social-store/store';
+} from 'social-store/definitions';
+import { SocialStore, createStore } from 'social-store/store';
 import {
   ActionRequest,
   ActionRequestTypes,
@@ -39,10 +38,12 @@ import { shadowSocialState, shadowAction } from 'social-store/shaders';
 import { isSerializedActionRequest } from 'social-store/serializers';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 import { UserModel, createUserModel } from 'social-store/models';
+import { TaskManager } from './taskManager';
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+const taskManager = new TaskManager();
 
 const store: SocialStore = createStore();
 const idMap: IdentityMapping<WebSocket, UserModel> = new IdentityMapping<
@@ -115,7 +116,10 @@ const onCloneRequest = (ws: WebSocket, data: any) => {
   send(ws, cloneResponseData);
 };
 
-const onActionRequest = (ws: WebSocket, data: SerializedActionRequest) => {
+const onActionRequest = async (
+  ws: WebSocket,
+  data: SerializedActionRequest,
+) => {
   const id = idMap.getId(ws);
   if (!id) {
     return;
@@ -129,25 +133,30 @@ const onActionRequest = (ws: WebSocket, data: SerializedActionRequest) => {
     data,
     store.currentState,
   );
-  planRequest(request);
+  await planRequest(request);
 };
 
-const planRequest = function (request: ActionRequest): void {
+const planRequest = async function (request: ActionRequest): Promise<void> {
   store.validate(request);
   const actions: Action[] = store.plan<Action>(request);
-  actions.forEach((action) => dispatchAction(action));
+  for (const action of actions) {
+    await dispatchAction(action);
+  }
 };
 
-const dispatchAction = function (action: Action) {
-  store.dispatch(action);
+const dispatchAction = async function (action: Action) {
+  console.log(`DISPATCH ACTION ${action.type}`);
+  console.log(action);
+  await store.dispatch(action);
+  console.log(`STATE`);
+  console.log(store.currentState);
   const targets: UserModel[] = action.onlyTo || idMap.getAllIdentities();
 
   targets.forEach((user) => {
     const ws = idMap.getT(user);
     if (ws) {
-      // Here we would serialize
       const actionData: SerializedAction = serializeAction(
-        shadowAction(action, user),
+        shadowAction(action, user, store.currentState),
       );
       send(ws, actionData);
     }
@@ -159,27 +168,32 @@ wss.on('connection', (ws: WebSocket) => {
     const data = JSON.parse(JSON.parse(rawData));
     console.log('RECEIVED:');
     console.log(data);
-    if (isVersionRequest(data)) {
-      onVersionRequest(ws, data);
-    } else if (isIdentityRequest(data)) {
-      onIdentityRequest(ws, data);
-    } else if (isCloneRequest(data)) {
-      onCloneRequest(ws, data);
-    } else if (isSerializedActionRequest(data)) {
-      onActionRequest(ws, data);
-    }
+    taskManager.queue(async () => {
+      if (isVersionRequest(data)) {
+        onVersionRequest(ws, data);
+      } else if (isIdentityRequest(data)) {
+        onIdentityRequest(ws, data);
+      } else if (isCloneRequest(data)) {
+        onCloneRequest(ws, data);
+      } else if (isSerializedActionRequest(data)) {
+        await onActionRequest(ws, data);
+      }
+    });
   });
 
   ws.on('close', (code, reason) => {
     const user = idMap.getId(ws);
     idMap.deleteT(ws);
     if (user) {
-      planRequest({
-        uuid: uuidv4(),
-        type: ActionRequestTypes.DisconnectUser,
-        user,
-        author: user,
-      });
+      taskManager.queue(
+        async () =>
+          await planRequest({
+            uuid: uuidv4(),
+            type: ActionRequestTypes.DisconnectUser,
+            user,
+            author: user,
+          }),
+      );
     }
   });
 });
@@ -188,4 +202,5 @@ wss.on('connection', (ws: WebSocket) => {
 server.listen(process.env.SERVER_PORT || 8080, () => {
   const address = server.address() as WebSocket.AddressInfo;
   console.log(`Server started at ${address.port}.`);
+  taskManager.start();
 });

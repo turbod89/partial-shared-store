@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { map, tap, withLatestFrom } from 'rxjs/operators';
 import { ActionRequestTypes } from 'social-store/action-requests';
 import { copyUserModel, UserModel } from 'social-store/models';
+import { hasUserFriend } from 'social-store/utils';
 import { PartiallySharedStoreService } from 'src/app/psstore.service';
 
 @Component({
@@ -32,7 +33,10 @@ export class UserListItemComponent implements OnInit {
       //tap((isMe) => console.log(`Is me: ${isMe}`)),
     );
     this.isFriend$ = this.psStore.user$.pipe(
-      map((me) => !!me && !!me.friends && me.friends.has(this.user.uuid)),
+      withLatestFrom(this.psStore.state$),
+      map(
+        ([me, state]) => !!me && hasUserFriend(me.uuid, this.user.uuid, state),
+      ),
       //tap((isFriend) => console.log(`Is friend: ${isFriend}`)),
     );
     this.isFriendshipRequestFrom$ = this.psStore.state$.pipe(
