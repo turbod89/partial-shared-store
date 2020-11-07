@@ -3,12 +3,12 @@ import { PartiallySharedStoreError } from 'partially-shared-store/errors';
 import {
   ActionRequest,
   ActionRequestTypes,
-  ActionRequestChangeOwnFieldTypes,
-  ChangeOwnFieldActionRequest,
+  ActionRequestUpdateOwnTypes,
+  UpdateOwnActionRequest,
   ConnectUserActionRequest,
   DisconnectUserActionRequest,
-} from '../../action-requests/user';
-import { SocialState } from '../../state';
+} from '../action-requests';
+import { UserState } from '../state';
 import {
   deserializeKnownUser,
   deserializeUser,
@@ -16,23 +16,23 @@ import {
   SerializedUserModel,
   serializeKnownUser,
   serializeUnknownUser,
-} from '../models';
+} from './models';
 
-export type SerializedActionRequestChangeOwnFieldTypes =
+export type SerializedActionRequestUpdateOwnTypes =
   | 'name'
   | 'display-name'
   | 'image-url';
-const serializeActionRequestChangeOwnFieldType = (
-  field: ActionRequestChangeOwnFieldTypes,
-): SerializedActionRequestChangeOwnFieldTypes => {
+const serializeActionRequestUpdateOwnType = (
+  field: ActionRequestUpdateOwnTypes,
+): SerializedActionRequestUpdateOwnTypes => {
   switch (field) {
-    case ActionRequestChangeOwnFieldTypes.Name: {
+    case ActionRequestUpdateOwnTypes.Name: {
       return 'name';
     }
-    case ActionRequestChangeOwnFieldTypes.ScreenName: {
+    case ActionRequestUpdateOwnTypes.ScreenName: {
       return 'display-name';
     }
-    case ActionRequestChangeOwnFieldTypes.ImageUrl: {
+    case ActionRequestUpdateOwnTypes.ImageUrl: {
       return 'image-url';
     }
     default: {
@@ -40,54 +40,54 @@ const serializeActionRequestChangeOwnFieldType = (
     }
   }
 };
-const deserializeActionRequestChangeOwnFieldType = (
-  field: SerializedActionRequestChangeOwnFieldTypes,
-): ActionRequestChangeOwnFieldTypes => {
+const deserializeActionRequestUpdateOwnType = (
+  field: SerializedActionRequestUpdateOwnTypes,
+): ActionRequestUpdateOwnTypes => {
   switch (field) {
     case 'name': {
-      return ActionRequestChangeOwnFieldTypes.Name;
+      return ActionRequestUpdateOwnTypes.Name;
     }
     case 'display-name': {
-      return ActionRequestChangeOwnFieldTypes.ScreenName;
+      return ActionRequestUpdateOwnTypes.ScreenName;
     }
     case 'image-url': {
-      return ActionRequestChangeOwnFieldTypes.ImageUrl;
+      return ActionRequestUpdateOwnTypes.ImageUrl;
     }
     default: {
-      return ActionRequestChangeOwnFieldTypes.Name;
+      return ActionRequestUpdateOwnTypes.Name;
     }
   }
 };
 
-export interface SerializedChangeOwnFieldActionRequest {
+export interface SerializedUpdateOwnActionRequest {
   uuid: string;
   author: string;
-  type: 'ChangeOwnField';
+  type: 'UpdateOwn';
   updates: {
-    field: SerializedActionRequestChangeOwnFieldTypes;
+    field: SerializedActionRequestUpdateOwnTypes;
     value: string;
   }[];
 }
-export const serializeChangeOwnFieldActionRequest = (
-  request: ChangeOwnFieldActionRequest,
-): SerializedChangeOwnFieldActionRequest => ({
+export const serializeUpdateOwnActionRequest = (
+  request: UpdateOwnActionRequest,
+): SerializedUpdateOwnActionRequest => ({
   uuid: request.uuid,
   author: request.author.uuid,
-  type: 'ChangeOwnField',
+  type: 'UpdateOwn',
   updates: request.updates.map(({ field, value }) => ({
-    field: serializeActionRequestChangeOwnFieldType(field),
+    field: serializeActionRequestUpdateOwnType(field),
     value: value,
   })),
 });
-export const deserializeChangeOwnFieldActionRequest = (
-  data: SerializedChangeOwnFieldActionRequest,
-  state: DeepReadonly<SocialState>,
-): ChangeOwnFieldActionRequest => ({
+export const deserializeUpdateOwnActionRequest = (
+  data: SerializedUpdateOwnActionRequest,
+  state: DeepReadonly<UserState>,
+): UpdateOwnActionRequest => ({
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
-  type: ActionRequestTypes.ChangeOwnField,
+  type: ActionRequestTypes.UpdateOwn,
   updates: data.updates.map(({ field, value }) => ({
-    field: deserializeActionRequestChangeOwnFieldType(field),
+    field: deserializeActionRequestUpdateOwnType(field),
     value: value,
   })),
 });
@@ -108,7 +108,7 @@ export const serializeConnectUserActionRequest = (
 });
 export const deserializeConnectUserActionRequest = (
   data: SerializedConnectUserActionRequest,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): ConnectUserActionRequest => ({
   uuid: data.uuid,
   author: deserializeUser(data.user, state),
@@ -132,7 +132,7 @@ export const serializeDisconnectUserActionRequest = (
 });
 export const deserializeDisconnectUserActionRequest = (
   data: SerializedDisconnectUserActionRequest,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): DisconnectUserActionRequest => ({
   uuid: data.uuid,
   author: deserializeKnownUser(data.author, state),
@@ -141,7 +141,7 @@ export const deserializeDisconnectUserActionRequest = (
 });
 
 export type SerializedActionRequest =
-  | SerializedChangeOwnFieldActionRequest
+  | SerializedUpdateOwnActionRequest
   | SerializedConnectUserActionRequest
   | SerializedDisconnectUserActionRequest;
 
@@ -149,10 +149,8 @@ export const serializeActionRequest = (
   request: ActionRequest,
 ): SerializedActionRequest => {
   switch (request.type) {
-    case ActionRequestTypes.ChangeOwnField:
-      return serializeChangeOwnFieldActionRequest(
-        request as ChangeOwnFieldActionRequest,
-      );
+    case ActionRequestTypes.UpdateOwn:
+      return serializeUpdateOwnActionRequest(request as UpdateOwnActionRequest);
     case ActionRequestTypes.ConnectUser:
       return serializeConnectUserActionRequest(
         request as ConnectUserActionRequest,
@@ -166,12 +164,12 @@ export const serializeActionRequest = (
 
 export const deserializeActionRequest = (
   serializedRequest: SerializedActionRequest,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): ActionRequest => {
   switch (serializedRequest.type) {
-    case ActionRequestTypes.ChangeOwnField:
-      return deserializeChangeOwnFieldActionRequest(
-        serializedRequest as SerializedChangeOwnFieldActionRequest,
+    case ActionRequestTypes.UpdateOwn:
+      return deserializeUpdateOwnActionRequest(
+        serializedRequest as SerializedUpdateOwnActionRequest,
         state,
       );
     case ActionRequestTypes.ConnectUser:

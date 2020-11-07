@@ -1,5 +1,4 @@
-import * as User from './user';
-
+import * as User from 'user-store/actions';
 import * as FriendshipRequest from './friendship-requests';
 
 // export ActionTypes
@@ -8,6 +7,7 @@ export const ActionTypes = Object.assign(
   User.ActionTypes,
   FriendshipRequest.ActionTypes,
 );
+export type ActionTypes = typeof ActionTypes;
 
 // export Action type
 export type Action = User.Action | FriendshipRequest.Action;

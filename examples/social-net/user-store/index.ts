@@ -4,8 +4,10 @@ import {
   Response as ResponseBase,
 } from 'partially-shared-store';
 import { Action } from './actions';
+import { UserState } from './state';
 import { SerializedAction, SerializedActionRequest } from './serializers';
-import { SocialState } from './state';
+
+export * from './store';
 
 export type Request = RequestBase | ActionRequest | SerializedActionRequest;
-export type Response = ResponseBase<SocialState> | Action | SerializedAction;
+export type Response = ResponseBase<UserState> | Action | SerializedAction;

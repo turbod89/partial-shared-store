@@ -1,17 +1,19 @@
 import { PartiallySharedStore } from 'partially-shared-store/store';
-import { SocialState, createInitialState } from './state';
+import { addValidators } from './validators';
 import { addPlanners } from './planners';
 import { addReducers } from './reducers';
+import { createInitialState, UserState } from './state';
 
-export class SocialStore extends PartiallySharedStore<SocialState> {
+export class UserStore extends PartiallySharedStore<UserState> {
   public readonly version = 'v1.0.0';
 }
 
 export const createStore = function (
-  initialState: SocialState | null = null,
-): SocialStore {
+  initialState: UserState | null = null,
+): UserStore {
   initialState = initialState || createInitialState();
-  const store = new SocialStore(initialState);
+  const store = new UserStore(initialState);
+  addValidators(store);
   addPlanners(store);
   addReducers(store);
   return store;

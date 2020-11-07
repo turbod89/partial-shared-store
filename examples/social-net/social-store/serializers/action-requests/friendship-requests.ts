@@ -13,10 +13,8 @@ import { SocialState } from '../../state';
 import {
   deserializeKnownUser,
   deserializeUser,
-  SerializedUnknownUserModel,
   SerializedUserModel,
   serializeKnownUser,
-  serializeUnknownUser,
 } from '../models';
 
 export interface SerializedRequestFriendshipActionRequest {
@@ -38,9 +36,9 @@ export const deserializeRequestFriendshipActionRequest = (
   state: DeepReadonly<SocialState>,
 ): RequestFriendshipActionRequest => ({
   uuid: data.uuid,
-  author: deserializeKnownUser(data.author, state),
+  author: deserializeKnownUser(data.author, state.users),
   type: ActionRequestTypes.RequestFriendship,
-  to: deserializeKnownUser(data.to, state),
+  to: deserializeKnownUser(data.to, state.users),
 });
 
 export interface SerializedUnfriendActionRequest {
@@ -62,9 +60,9 @@ export const deserializeUnfriendActionRequest = (
   state: DeepReadonly<SocialState>,
 ): UnfriendActionRequest => ({
   uuid: data.uuid,
-  author: deserializeKnownUser(data.author, state),
+  author: deserializeKnownUser(data.author, state.users),
   type: ActionRequestTypes.Unfriend,
-  to: deserializeKnownUser(data.to, state),
+  to: deserializeKnownUser(data.to, state.users),
 });
 
 export interface SerializedAcceptFriendshipRequestActionRequest {
@@ -86,9 +84,9 @@ export const deserializeAcceptFriendshipRequestActionRequest = (
   state: DeepReadonly<SocialState>,
 ): AcceptFriendshipRequestActionRequest => ({
   uuid: data.uuid,
-  author: deserializeKnownUser(data.author, state),
+  author: deserializeKnownUser(data.author, state.users),
   type: ActionRequestTypes.AcceptFriendshipRequest,
-  from: deserializeUser(data.from, state),
+  from: deserializeUser(data.from, state.users),
 });
 
 export interface SerializedDenyFriendshipRequestActionRequest {
@@ -110,9 +108,9 @@ export const deserializeDenyFriendshipRequestActionRequest = (
   state: DeepReadonly<SocialState>,
 ): DenyFriendshipRequestActionRequest => ({
   uuid: data.uuid,
-  author: deserializeKnownUser(data.author, state),
+  author: deserializeKnownUser(data.author, state.users),
   type: ActionRequestTypes.DenyFriendshipRequest,
-  from: deserializeUser(data.from, state),
+  from: deserializeUser(data.from, state.users),
 });
 
 export interface SerializedCancelFriendshipRequestActionRequest {
@@ -134,9 +132,9 @@ export const deserializeCancelFriendshipRequestActionRequest = (
   state: DeepReadonly<SocialState>,
 ): CancelFriendshipRequestActionRequest => ({
   uuid: data.uuid,
-  author: deserializeKnownUser(data.author, state),
+  author: deserializeKnownUser(data.author, state.users),
   type: ActionRequestTypes.CancelFriendshipRequest,
-  to: deserializeUser(data.to, state),
+  to: deserializeUser(data.to, state.users),
 });
 
 export type SerializedActionRequest =
