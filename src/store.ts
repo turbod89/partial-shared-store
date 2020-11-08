@@ -47,12 +47,18 @@ export class PartiallySharedStore<CustomState extends State = State> {
     });
   }
 
-  private stateNext(state: DeepReadonly<CustomState>): void {
-    this.stateResolve({ done: false, value: state });
+  private async stateNext(state: DeepReadonly<CustomState>): Promise<void> {
+    return Promise.all([
+      this.statePromise,
+      this.stateResolve({ done: false, value: state }),
+    ]).then((_) => {});
   }
 
-  private stateDone(): void {
-    this.stateResolve({ done: true, value: this._state });
+  private async stateDone(): Promise<void> {
+    return Promise.all([
+      this.statePromise,
+      this.stateResolve({ done: true, value: this._state }),
+    ]).then((_) => {});
   }
 
   get state(): AsyncIterable<DeepReadonly<CustomState>> {
@@ -106,16 +112,16 @@ export class PartiallySharedStore<CustomState extends State = State> {
     return (planner.call(this, state, request) as unknown[]) as CustomAction[];
   }
 
-  public dispatch(
+  public async dispatch(
     action: Action,
     state: DeepReadonly<CustomState> | null = null,
-  ): void {
+  ): Promise<void> {
     const reducer = this.reducerMapping.get(action.type);
     if (!reducer) {
       return;
     }
     state = state || this._state;
-    this.stateNext(reducer.call(this, this._state, action));
+    await this.stateNext(reducer.call(this, this._state, action));
   }
 
   public createValidator<
