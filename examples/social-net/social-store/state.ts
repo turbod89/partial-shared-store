@@ -1,14 +1,19 @@
 import { State } from 'partially-shared-store';
 import { DeepReadonly } from 'partially-shared-store/definitions';
-import { copyUserModel, UserModel } from './models';
+import {
+  UserState,
+  copyState as copyUserState,
+  createInitialState as createInitialUserState,
+} from 'user-store/state';
 
 export interface SocialState extends State {
-  users: {
-    [uuid: string]: UserModel;
-  };
+  users: UserState;
   friendshipRequests: {
     from: { [uuid: string]: string[] };
     to: { [uuid: string]: string[] };
+  };
+  friendships: {
+    [uuid: string]: Set<string>;
   };
 }
 
@@ -28,21 +33,23 @@ export const copyState = (state: DeepReadonly<SocialState>): SocialState => {
     to: copyFRMMap(state.friendshipRequests.to),
   };
 
-  const users: { [uuid: string]: UserModel } = {};
-  for (const uuid in state.users) {
-    users[uuid] = copyUserModel(state.users[uuid]);
+  const friendships: { [uuid: string]: Set<string> } = {};
+  for (let uuid in state.friendships) {
+    friendships[uuid] = new Set([...state.friendships[uuid].values()]);
   }
 
   return {
-    users,
+    users: copyUserState(state.users),
     friendshipRequests,
+    friendships,
   };
 };
 
 export const createInitialState = (): SocialState => ({
-  users: {},
+  users: createInitialUserState(),
   friendshipRequests: {
     from: {},
     to: {},
   },
+  friendships: {},
 });

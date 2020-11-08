@@ -1,78 +1,9 @@
-import { DeepReadonly, Model } from 'partially-shared-store/definitions';
-import { copyUserModel, FriendshipRequestModel, UserModel } from '../models';
+import { DeepReadonly } from 'partially-shared-store/definitions';
+import { deserializeKnownUser } from 'user-store/serializers';
+import { FriendshipRequestModel, UserModel } from '../models';
 import { SocialState } from '../state';
 
-export type SerializedKnownUserModel = string;
-export interface SerializedUnknownUserModel extends Model {
-  screenName: string;
-  name?: string;
-  status?: string;
-  friends?: string[];
-  imageUrl?: string;
-}
-
-export type SerializedUserModel =
-  | SerializedKnownUserModel
-  | SerializedUnknownUserModel;
-
-export const serializeKnownUser = (
-  user: DeepReadonly<UserModel>,
-): SerializedKnownUserModel => user.uuid;
-export const deserializeKnownUser = (
-  userUuid: string,
-  state: DeepReadonly<SocialState>,
-): UserModel => copyUserModel(state.users[userUuid]);
-
-export const serializeUnknownUser = (
-  user: DeepReadonly<UserModel>,
-): SerializedUnknownUserModel => {
-  const serializedUser: SerializedUnknownUserModel = {
-    uuid: user.uuid,
-    screenName: user.screenName,
-  };
-  if (user.name) {
-    serializedUser.name = user.name;
-  }
-  if (user.status) {
-    serializedUser.status = user.status;
-  }
-  if (user.friends) {
-    serializedUser.friends = [...user.friends] as string[];
-  }
-  if (user.imageUrl) {
-    serializedUser.imageUrl = user.imageUrl;
-  }
-  return serializedUser;
-};
-export const deserializeUnknownUser = (
-  user: DeepReadonly<SerializedUnknownUserModel>,
-) => {
-  const newUserModel: UserModel = {
-    uuid: user.uuid,
-    screenName: user.screenName,
-  };
-  if (user.name) {
-    newUserModel.name = user.name;
-  }
-  if (user.status) {
-    newUserModel.status = user.status;
-  }
-  if (user.friends) {
-    newUserModel.friends = new Set<string>(user.friends);
-  }
-  if (user.imageUrl) {
-    newUserModel.imageUrl = user.imageUrl;
-  }
-  return newUserModel;
-};
-
-export const deserializeUser = (
-  user: SerializedUserModel,
-  state: DeepReadonly<SocialState>,
-) =>
-  typeof user === 'string'
-    ? deserializeKnownUser(user, state)
-    : deserializeUnknownUser(user);
+export * from 'user-store/serializers/models';
 
 export type SerializedFriendshipRequestModel = {
   from: string;
@@ -90,7 +21,7 @@ export const deserializeFriendshipRequestModel = (
   sfr: DeepReadonly<SerializedFriendshipRequestModel>,
   state: DeepReadonly<SocialState>,
 ): FriendshipRequestModel => {
-  const from: UserModel = deserializeKnownUser(sfr.from, state);
-  const to: UserModel = deserializeKnownUser(sfr.to, state);
+  const from: UserModel = deserializeKnownUser(sfr.from, state.users);
+  const to: UserModel = deserializeKnownUser(sfr.to, state.users);
   return { from, to };
 };

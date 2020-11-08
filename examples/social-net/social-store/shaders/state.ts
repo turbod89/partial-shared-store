@@ -7,15 +7,12 @@ export const shadowSocialState = (
   state: DeepReadonly<SocialState>,
   to: DeepReadonly<UserModel>,
 ): DeepReadonly<SocialState> => {
-  //const friends = to.friends ? [...to.friends] : [];
   const users = Object.keys(state.users).reduce(
     (users: { [uuid: string]: DeepReadonly<UserModel> }, userUuid) => {
-      users[userUuid] = shadowUserModel(state.users[userUuid], to);
+      users[userUuid] = shadowUserModel(state.users[userUuid], to, state);
       return users;
     },
-    {
-      [to.uuid]: to,
-    },
+    {},
   );
   const friendshipRequestsFrom: { [uuid: string]: string[] } = {};
   for (const uuid in state.friendshipRequests.from) {
@@ -45,6 +42,19 @@ export const shadowSocialState = (
     from: friendshipRequestsFrom,
     to: friendshipRequestsTo,
   };
-  const newState = { users, friendshipRequests };
+
+  const friendUuids: DeepReadonly<Set<string>> =
+    state.friendships[to.uuid] || new Set<string>();
+  const friendships = [...friendUuids.values()].reduce(
+    (fs, uuid) => {
+      fs[uuid] = state.friendships[uuid];
+      return fs;
+    },
+    {
+      [to.uuid]: friendUuids,
+    },
+  );
+
+  const newState = { users, friendshipRequests, friendships };
   return newState;
 };

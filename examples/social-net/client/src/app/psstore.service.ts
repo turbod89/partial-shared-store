@@ -2,16 +2,14 @@ import { Injectable } from '@angular/core';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 import { map, withLatestFrom } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
+import { Request, Response } from 'social-store';
 import {
-  createStore,
-  IdentityResponse,
-  IdentityRequest,
-  Request,
-  Response,
   createIdentityRequest,
   isIdentityResponse,
-} from 'social-store';
-import { Action, ActionTypes } from 'social-store/actions';
+  IdentityResponse,
+  IdentityRequest,
+} from 'social-store/definitions';
+import { Action } from 'social-store/actions';
 import {
   ActionRequest,
   ActionRequestTypes,
@@ -26,7 +24,7 @@ import {
   VersionResponse,
 } from 'partially-shared-store';
 import { environment } from 'src/environments/environment';
-import { SocialStore } from 'social-store/store';
+import { SocialStore, createStore } from 'social-store/store';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import {
   deserializeAction,

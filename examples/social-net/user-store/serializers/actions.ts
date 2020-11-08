@@ -1,19 +1,18 @@
 import { DeepReadonly } from 'partially-shared-store/definitions';
-import { PartiallySharedStoreError } from 'partially-shared-store/errors';
 import {
   CreateUserAction,
   DeleteUserAction,
   UpdateUserAction,
-} from '../../actions';
-import { Action, ActionTypes } from '../../actions/user';
-import { SocialState } from '../../state';
+} from '../actions';
+import { Action, ActionTypes } from '../actions';
+import { UserState } from '../state';
 import {
   deserializeUser,
   SerializedKnownUserModel,
   SerializedUnknownUserModel,
   serializeKnownUser,
   serializeUnknownUser,
-} from '../models';
+} from './models';
 
 export interface SerializedCreateUserAction {
   uuid: string;
@@ -29,7 +28,7 @@ export const serializeCreateUserAction = (
 });
 export const deserializeCreateUserAction = (
   action: SerializedCreateUserAction,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): CreateUserAction => ({
   uuid: action.uuid,
   type: action.type,
@@ -50,7 +49,7 @@ export const serializeUpdateUserAction = (
 });
 export const deserializeUpdateUserAction = (
   action: SerializedUpdateUserAction,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): UpdateUserAction => ({
   uuid: action.uuid,
   type: action.type,
@@ -71,7 +70,7 @@ export const serializeDeleteUserAction = (
 });
 export const deserializeDeleteUserAction = (
   action: SerializedDeleteUserAction,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): DeleteUserAction => ({
   uuid: action.uuid,
   type: action.type,
@@ -92,12 +91,11 @@ export const serializeAction = (action: Action): SerializedAction => {
     case ActionTypes.DeleteUser:
       return serializeDeleteUserAction(action as DeleteUserAction);
   }
-  throw new PartiallySharedStoreError('Unknown action type');
 };
 
 export const deserializeAction = (
   action: SerializedAction,
-  state: DeepReadonly<SocialState>,
+  state: DeepReadonly<UserState>,
 ): Action => {
   switch (action.type) {
     case ActionTypes.CreateUser:
@@ -116,7 +114,6 @@ export const deserializeAction = (
         state,
       );
   }
-  throw new PartiallySharedStoreError('Unknown action type');
 };
 
 export const isSerializedAction = (data: any): data is SerializedAction =>

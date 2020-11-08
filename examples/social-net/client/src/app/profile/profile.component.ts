@@ -6,7 +6,7 @@ import { map, tap, filter } from 'rxjs/operators';
 import { UserModel } from 'social-store/models';
 import { PartiallySharedStoreService } from '../psstore.service';
 import {
-  ActionRequestChangeOwnFieldTypes,
+  ActionRequestUpdateOwnTypes,
   ActionRequestTypes,
 } from 'social-store/action-requests';
 import { Router } from '@angular/router';
@@ -48,18 +48,18 @@ export class ProfileComponent implements OnInit {
     const profileFormValues = this.profileForm.value;
 
     this.psStore.dispatch({
-      type: ActionRequestTypes.ChangeOwnField,
+      type: ActionRequestTypes.UpdateOwn,
       updates: [
         {
-          field: ActionRequestChangeOwnFieldTypes.Name,
+          field: ActionRequestUpdateOwnTypes.Name,
           value: profileFormValues.name,
         },
         {
-          field: ActionRequestChangeOwnFieldTypes.ScreenName,
+          field: ActionRequestUpdateOwnTypes.ScreenName,
           value: profileFormValues.screenName,
         },
         {
-          field: ActionRequestChangeOwnFieldTypes.ImageUrl,
+          field: ActionRequestUpdateOwnTypes.ImageUrl,
           value: profileFormValues.imageUrl,
         },
       ],
