@@ -6,6 +6,7 @@ COPY src /usr/app/src
 COPY package.json /usr/app
 COPY tsconfig.json /usr/app
 # Add custom store
+COPY examples/social-net/user-store /usr/app/examples/social-net/user-store
 COPY examples/social-net/social-store /usr/app/examples/social-net/social-store
 # Add client source
 COPY examples/social-net/client .
@@ -19,18 +20,24 @@ RUN echo "INSTALL AND BUILD PSSTORE" \
     && npm link \
 # install and build custom store
     && echo "INSTALL AND BUILD CUSTOM PSSTORE" \
+    && cd /usr/app/examples/social-net/user-store \
+    && npm install \
+    && npm link partially-shared-store \
+    && npm run build \
+    && cd dist/ \
+    && npm link \
     && cd /usr/app/examples/social-net/social-store \
     && npm install \
     && npm link partially-shared-store \
+    && npm link user-store \
     && npm run build \
     && cd dist/ \
     && npm link \
 # install client
     && echo "INSTALL CLIENT" \
     && cd /usr/app/examples/social-net/client/ \
-    && npm link social-store \
-    && npm link partially-shared-store \
     && npm install \
+    && npm link social-store \
     && npm link social-store \
     && npm link partially-shared-store \
     ;

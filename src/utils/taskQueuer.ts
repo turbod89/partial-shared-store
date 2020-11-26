@@ -1,5 +1,5 @@
 type Task = () => Promise<any>;
-export class TaskManager {
+export class TaskQueuer {
   private _tasks: Task[] = [];
   private _currentTask: Task | null = null;
   private next: (result: IteratorResult<Task>) => void = (_) => {};
@@ -25,6 +25,10 @@ export class TaskManager {
       const task: Task = this._tasks.shift() as Task;
       this.next({ done: false, value: task });
     }
+  }
+
+  public get currentTask(): Task | null {
+    return this._currentTask;
   }
 
   public get tasks(): AsyncIterable<Task> {
