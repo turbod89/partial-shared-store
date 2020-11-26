@@ -38,12 +38,12 @@ import { shadowSocialState, shadowAction } from 'social-store/shaders';
 import { isSerializedActionRequest } from 'social-store/serializers';
 import { DeepReadonly } from 'partially-shared-store/definitions';
 import { UserModel, createUserModel } from 'social-store/models';
-import { TaskManager } from './taskManager';
+import { TaskQueuer } from 'partially-shared-store/utils';
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const taskManager = new TaskManager();
+const taskQueuer = new TaskQueuer();
 
 const store: SocialStore = createStore();
 const idMap: IdentityMapping<WebSocket, UserModel> = new IdentityMapping<
@@ -168,7 +168,7 @@ wss.on('connection', (ws: WebSocket) => {
     const data = JSON.parse(JSON.parse(rawData));
     console.log('RECEIVED:');
     console.log(data);
-    taskManager.queue(async () => {
+    taskQueuer.queue(async () => {
       if (isVersionRequest(data)) {
         onVersionRequest(ws, data);
       } else if (isIdentityRequest(data)) {
@@ -185,7 +185,7 @@ wss.on('connection', (ws: WebSocket) => {
     const user = idMap.getId(ws);
     idMap.deleteT(ws);
     if (user) {
-      taskManager.queue(
+      taskQueuer.queue(
         async () =>
           await planRequest({
             uuid: uuidv4(),
@@ -202,5 +202,5 @@ wss.on('connection', (ws: WebSocket) => {
 server.listen(process.env.SERVER_PORT || 8080, () => {
   const address = server.address() as WebSocket.AddressInfo;
   console.log(`Server started at ${address.port}.`);
-  taskManager.start();
+  taskQueuer.start();
 });
