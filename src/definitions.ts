@@ -1,3 +1,12 @@
+import {
+  CloneRequest,
+  CloneResponse,
+  IdentityRequest,
+  IdentityResponse,
+  VersionRequest,
+  VersionResponse,
+} from './connecting-calls';
+
 export type UUID = string;
 export const uuidRegex = /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/g;
 export const isUuid = (s: string): boolean => uuidRegex.test(s);
@@ -63,16 +72,15 @@ export interface State {}
 export interface Model extends Identificable {}
 export interface Identity extends Identificable {}
 
-export interface IdentityRequest extends Identificable {}
-export interface StateRequest extends Identificable {}
-
+export type ActionRequestId = string | number;
 export interface ActionRequest extends Identificable {
-  type: string;
+  type: ActionRequestId;
   author: Identity;
 }
 
+export type ActionId = string | number;
 export interface Action extends Identificable {
-  type: string;
+  type: ActionId;
 }
 
 export type Validator<
@@ -98,35 +106,6 @@ export type Reducer<
   state: DeepReadonly<CustomState>,
   action: CustomAction,
 ) => DeepReadonly<CustomState>;
-
-// special types
-export interface VersionRequest extends Identificable {
-  type: 'VersionRequest';
-}
-export interface VersionResponse extends Identificable {
-  type: 'VersionResponse';
-  request: VersionRequest;
-  version: string;
-}
-
-export interface IdentityRequest extends Identificable {
-  type: 'IdentityRequest';
-}
-export interface IdentityResponse extends Identificable {
-  type: 'IdentityResponse';
-  request: IdentityRequest;
-  identity: Identity;
-}
-
-export interface CloneRequest extends Identificable {
-  type: 'CloneRequest';
-}
-export interface CloneResponse<CustomState extends State>
-  extends Identificable {
-  type: 'CloneResponse';
-  request: CloneRequest;
-  state: DeepReadonly<CustomState>;
-}
 
 export type Request =
   | ActionRequest

@@ -5,28 +5,6 @@ export {
   Response,
   Action,
   ActionRequest,
-  CloneRequest,
-  CloneResponse,
-  IdentityRequest,
-  IdentityResponse,
   State,
-  VersionRequest,
-  VersionResponse,
 } from './definitions';
-export {
-  IdentityMapping,
-  createIdentity,
-  createIdentityRequest,
-  createIdentityResponse,
-  createCloneRequest,
-  createCloneResponse,
-  createVersionRequest,
-  createVersionResponse,
-  isCloneRequest,
-  isCloneResponse,
-  isIdentityRequest,
-  isIdentityResponse,
-  isVersionRequest,
-  isVersionResponse,
-} from './utils';
 export { createStore } from './store';

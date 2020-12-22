@@ -1,6 +1,8 @@
 import {
   Action,
+  ActionId,
   ActionRequest,
+  ActionRequestId,
   deepFreeze,
   DeepReadonly,
   Planner,
@@ -11,9 +13,15 @@ import {
 import { PartiallySharedStoreError } from './errors';
 
 export class PartiallySharedStore<CustomState extends State = State> {
-  private validatorMapping = new Map<string, Validator<CustomState, any>>();
-  private plannerMapping = new Map<string, Planner<CustomState, any>>();
-  private reducerMapping = new Map<string, Reducer<CustomState, any>>();
+  private validatorMapping = new Map<
+    ActionRequestId,
+    Validator<CustomState, any>
+  >();
+  private plannerMapping = new Map<
+    ActionRequestId,
+    Planner<CustomState, any>
+  >();
+  private reducerMapping = new Map<ActionId, Reducer<CustomState, any>>();
   // private static serializerMapping = new Map<string, Validator>();
   // private static deserializerMapping = new Map<string, Validator>();
 
@@ -127,7 +135,7 @@ export class PartiallySharedStore<CustomState extends State = State> {
   public createValidator<
     CustomActionRequest extends ActionRequest = ActionRequest
   >(
-    actionRequestType: string,
+    actionRequestType: ActionRequestId,
     validator: Validator<CustomState, CustomActionRequest>,
   ): void {
     this.validatorMapping.set(actionRequestType, validator);
@@ -136,10 +144,10 @@ export class PartiallySharedStore<CustomState extends State = State> {
   public createPlanner<
     CustomActionRequest extends ActionRequest = ActionRequest
   >(
-    actionRequestType: string | string[],
+    actionRequestType: ActionRequestId | ActionRequestId[],
     planner: Planner<CustomState, CustomActionRequest>,
   ): void {
-    if (typeof actionRequestType === 'string') {
+    if (!Array.isArray(actionRequestType)) {
       this.plannerMapping.set(actionRequestType, planner);
     } else {
       actionRequestType.map((actionRequestType) =>
@@ -149,10 +157,10 @@ export class PartiallySharedStore<CustomState extends State = State> {
   }
 
   public createReducer<CustomAction extends Action = Action>(
-    actionType: string | string[],
+    actionType: ActionId | ActionId[],
     reducer: Reducer<CustomState, CustomAction>,
   ): void {
-    if (typeof actionType === 'string') {
+    if (!Array.isArray(actionType)) {
       this.reducerMapping.set(actionType, reducer);
     } else {
       actionType.map((actionType) =>
