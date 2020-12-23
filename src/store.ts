@@ -123,13 +123,14 @@ export class PartiallySharedStore<CustomState extends State = State> {
   public async dispatch(
     action: Action,
     state: DeepReadonly<CustomState> | null = null,
-  ): Promise<void> {
+  ): Promise<DeepReadonly<CustomState>> {
     const reducer = this.reducerMapping.get(action.type);
     if (!reducer) {
-      return;
+      return this.currentState;
     }
     state = state || this._state;
     await this.stateNext(reducer.call(this, this._state, action));
+    return this.currentState;
   }
 
   public createValidator<
