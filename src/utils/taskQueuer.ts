@@ -21,7 +21,7 @@ export class TaskQueuer {
   }
 
   private dispatchNextTask() {
-    if (this._tasks.length > 0) {
+    if (!this._currentTask && this._tasks.length > 0) {
       const task: Task = this._tasks.shift() as Task;
       this.next({ done: false, value: task });
     }
@@ -45,6 +45,7 @@ export class TaskQueuer {
     (async () => {
       for await (const task of this.tasks) {
         await task();
+        this._currentTask = null;
         this.dispatchNextTask();
       }
     })();
