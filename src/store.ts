@@ -129,7 +129,7 @@ export class PartiallySharedStore<CustomState extends State = State> {
       return this.currentState;
     }
     state = state || this._state;
-    await this.stateNext(reducer.call(this, this._state, action));
+    await this.stateNext(reducer.call(this, state, action));
     return this.currentState;
   }
 
