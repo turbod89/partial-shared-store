@@ -1,32 +1,25 @@
 import { Injectable } from '@angular/core';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 import { map } from 'rxjs/operators';
-import { v4 as uuidv4 } from 'uuid';
-import { createStore, Request, Response } from 'counter-store';
-import { Action, isAction } from 'counter-store/actions';
-import { ActionRequest } from 'counter-store/action-requests';
-import { CounterState } from 'counter-store/state';
-import {
-  CloneRequest,
-  CloneResponse,
-  Identity,
-  IdentityRequest,
-  IdentityResponse,
-  VersionResponse,
-} from 'partially-shared-store';
 import { environment } from 'src/environments/environment';
-import { CounterStore } from 'counter-store/store';
 import { Subject, Observable } from 'rxjs';
-import {
-  createCloneRequest,
-  createIdentity,
-  createIdentityRequest,
-  isCloneResponse,
-  isIdentityResponse,
-  isVersionResponse,
-} from 'partially-shared-store';
 
-type Message = Request | Response;
+import { TaskQueuer } from 'partially-shared-store/utils';
+import { Action, isAction } from 'counter-store/actions';
+import {
+  Store as CounterStore,
+  createStore,
+  State as CounterState,
+  Identificable,
+  createIdentificable,
+} from 'counter-store';
+import {
+  ActionRequest,
+  createActionRequest,
+  ActionRequestTypes as ART,
+} from 'counter-store/action-requests';
+
+type Message = ActionRequest | Action;
 
 @Injectable({
   providedIn: 'root',
@@ -37,11 +30,14 @@ export class PartiallySharedStoreService {
   private store: CounterStore = createStore();
   private stateSource: Subject<CounterState> = new Subject();
   public state$: Observable<CounterState> = this.stateSource.asObservable();
-  public identity: Identity = createIdentity();
+  public identity: Identificable = createIdentificable();
+  private taskQueuer: TaskQueuer = new TaskQueuer();
 
   constructor() {
     this.stateToSource();
     this.connect();
+    this.requestClone();
+    this.taskQueuer.start();
   }
 
   public connect(): void {
@@ -53,23 +49,20 @@ export class PartiallySharedStoreService {
         map((data: string): Message => (data as unknown) as Message),
       );
       this.responses$.subscribe((data: object) => {
-        console.log(data);
-        if (isAction(data)) {
-          this.onAction(data);
-        } else if (isVersionResponse(data)) {
-          this.onVersionResponse(data);
-        } else if (isIdentityResponse(data)) {
-          this.onIdentityResponse(data);
-        } else if (isCloneResponse(data)) {
-          this.onCloneResponse(data);
-        }
-      });
-
-      this.send({
-        uuid: uuidv4(),
-        type: 'VersionRequest',
+        this.taskQueuer.queue(async () => {
+          if (isAction(data)) {
+            await this.store.dispatch(data);
+          }
+        });
       });
     }
+  }
+
+  private requestClone(): void {
+    const actionRequest = createActionRequest(ART.Clone)({
+      author: this.identity,
+    });
+    this.dispatch(actionRequest);
   }
 
   private async stateToSource(): Promise<void> {
@@ -79,52 +72,13 @@ export class PartiallySharedStoreService {
     this.stateSource.complete();
   }
 
-  private onVersionResponse(data: any): void {
-    // Here we would deserialize
-    const response: VersionResponse = data as VersionResponse;
-    try {
-      this.store.checkVersion(response.version);
-    } catch (error) {
-      throw Error('Versions do not match');
-    }
-    const identityRequest: IdentityRequest = createIdentityRequest();
-    // Here we would serialize
-    const requestData = identityRequest;
-    this.send(requestData);
-  }
-
-  private onIdentityResponse(data: any): void {
-    // Here we would deserialize
-    const response: IdentityResponse = data as IdentityResponse;
-    this.identity = response.identity;
-    const cloneRequest: CloneRequest = createCloneRequest();
-    // Here we would serialize
-    const requestData = cloneRequest;
-    this.send(requestData);
-  }
-
-  private onCloneResponse(data: any): void {
-    // Here we would deserialize
-    const response: CloneResponse<CounterState> = data as CloneResponse<
-      CounterState
-    >;
-    this.store.clone(response.state);
-  }
-
-  private onAction(data: any): void {
-    // Here we would deserialize
-    const action: Action = data as Action;
-    console.log(action);
-    this.store.dispatch(action);
-  }
-
   public send(data: Message) {
     const parsedData = JSON.stringify(data);
     this.socket$.next(parsedData);
   }
 
-  public dispatch(action: ActionRequest) {
-    this.send(action);
+  public dispatch(actionRequest: ActionRequest) {
+    this.send(actionRequest);
   }
 
   close() {

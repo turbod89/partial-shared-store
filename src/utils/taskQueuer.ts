@@ -1,12 +1,12 @@
 type Task = () => Promise<any>;
 export class TaskQueuer {
-  private _tasks: Task[] = [];
-  private _currentTask: Task | null = null;
-  private next: (result: IteratorResult<Task>) => void = (_) => {};
-  private reject: () => void = () => {};
-  private promise: Promise<IteratorResult<Task>> = new Promise(() => {});
+  protected _tasks: Task[] = [];
+  protected _currentTask: Task | null = null;
+  protected next: (result: IteratorResult<Task>) => void = (_) => {};
+  protected reject: () => void = () => {};
+  protected promise: Promise<IteratorResult<Task>> = new Promise(() => {});
 
-  private setPromise() {
+  protected setPromise() {
     this.promise = new Promise<IteratorResult<Task>>((resolve, reject) => {
       this.next = resolve;
       this.reject = reject;
@@ -20,7 +20,7 @@ export class TaskQueuer {
     });
   }
 
-  private dispatchNextTask() {
+  protected dispatchNextTask() {
     if (!this._currentTask && this._tasks.length > 0) {
       const task: Task = this._tasks.shift() as Task;
       this.next({ done: false, value: task });

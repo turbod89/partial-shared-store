@@ -35,5 +35,5 @@ RUN echo "INSTALL AND BUILD PSSTORE" \
     ;
 
 CMD [ "npm", "start" ]
-EXPOSE 8080
+EXPOSE 7001
 

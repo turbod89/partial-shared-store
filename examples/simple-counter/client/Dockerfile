@@ -1,4 +1,4 @@
-FROM node:12.18.1-alpine
+FROM node:12.18.1-alpine as build
 WORKDIR /usr/app/examples/simple-counter/client/
 
 # Add src
@@ -33,8 +33,19 @@ RUN echo "INSTALL AND BUILD PSSTORE" \
     && npm install \
     && npm link counter-store \
     && npm link partially-shared-store \
+# generate build
+    && ./node_modules/.bin/ng build --output-path=dist \
     ;
 
-CMD [ "./node_modules/.bin/ng", "serve", "--host", "0.0.0.0" ]
-EXPOSE 4200
+# base image
+FROM nginx:1.16.0-alpine
+
+# copy artifact build from the 'build environment'
+COPY --from=build /usr/app/examples/simple-counter/client/dist /usr/share/nginx/html
+
+# expose port 80
+EXPOSE 80
+
+# run nginx
+CMD ["nginx", "-g", "daemon off;"];
 

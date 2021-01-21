@@ -1,44 +1,46 @@
-import { Identity, UUID } from '../definitions';
+export class IdentityMapping<T, Identificable, ID = string> {
+  protected idToType = new Map<ID, T>();
+  protected typeToId = new Map<T, ID>();
+  protected identities = new Map<ID, Identificable>();
 
-export class IdentityMapping<T, I extends Identity = Identity> {
-  private idToType = new Map<UUID, T>();
-  private typeToId = new Map<T, UUID>();
-  private identities = new Map<UUID, I>();
+  constructor(
+    protected extractIdentinty: (identificable: Identificable) => ID,
+  ) {}
 
-  getAllIdentities(): I[] {
+  getAllIdentities(): Identificable[] {
     return Array.from(this.identities.values());
   }
 
-  getId(t: T): I | undefined {
-    const id: UUID | undefined = this.typeToId.get(t);
-    if (!id) {
+  getId(t: T): Identificable | undefined {
+    const id: ID | undefined = this.typeToId.get(t);
+    if (id === undefined) {
       return undefined;
     }
     return this.identities.get(id);
   }
 
-  public getT(id: I): T | undefined {
-    return this.idToType.get(id.uuid);
+  public getT(identificable: Identificable): T | undefined {
+    return this.idToType.get(this.extractIdentinty(identificable));
   }
 
-  public set(id: I, type: T) {
-    this.idToType.set(id.uuid, type);
-    this.identities.set(id.uuid, id);
-    this.typeToId.set(type, id.uuid);
+  public set(identificable: Identificable, type: T) {
+    this.idToType.set(this.extractIdentinty(identificable), type);
+    this.identities.set(this.extractIdentinty(identificable), identificable);
+    this.typeToId.set(type, this.extractIdentinty(identificable));
   }
 
-  public deleteId(id: I) {
-    const t: T | undefined = this.getT(id);
+  public deleteId(identificable: Identificable) {
+    const t: T | undefined = this.getT(identificable);
     if (!t) {
       return;
     }
     this.typeToId.delete(t);
-    this.identities.delete(id.uuid);
-    this.idToType.delete(id.uuid);
+    this.identities.delete(this.extractIdentinty(identificable));
+    this.idToType.delete(this.extractIdentinty(identificable));
   }
 
   public deleteT(t: T) {
-    const uuid: UUID | undefined = this.typeToId.get(t);
+    const uuid: ID | undefined = this.typeToId.get(t);
     if (!uuid) {
       return;
     }

@@ -6,15 +6,13 @@ services:
                         dockerfile: "examples/simple-counter/server/Dockerfile"
                 command: ["npm", "start"]
                 ports:
-                        - 7001:8080
+                        - 7001:7001
         client:
                 build:
                         context: "../../"
                         dockerfile: "examples/simple-counter/client/Dockerfile"
-                command: ["./node_modules/.bin/ng", "serve", "--host", "0.0.0.0"]
-                volumes:
-                        - ./client/src:/usr/app/examples/counter/client/src
+                command: ["nginx", "-g", "daemon off;"]
                 environment:
                         - SERVER_PORT=7001
                 ports:
-                        - 7000:4200
+                        - 7000:80

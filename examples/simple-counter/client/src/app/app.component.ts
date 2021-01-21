@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { PartiallySharedStoreService } from './psstore.service';
 import { map } from 'rxjs/operators';
-import { ActionRequestTypes } from 'counter-store/action-requests';
-import { CounterState } from 'counter-store/state';
+import {
+  ActionRequestTypes as ART,
+  createActionRequest,
+} from 'counter-store/action-requests';
+import { State as CounterState } from 'counter-store/state';
 import { Observable } from 'rxjs';
-import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-root',
@@ -26,17 +28,18 @@ export class AppComponent {
   }
 
   increment() {
-    this.psStore.dispatch({
-      uuid: uuidv4(),
-      type: ActionRequestTypes.Increment,
-      author: this.psStore.identity,
-    });
+    this.psStore.dispatch(
+      createActionRequest(ART.Increment)({
+        author: this.psStore.identity,
+      }),
+    );
   }
+
   decrement() {
-    this.psStore.dispatch({
-      uuid: uuidv4(),
-      type: ActionRequestTypes.Decrement,
-      author: this.psStore.identity,
-    });
+    this.psStore.dispatch(
+      createActionRequest(ART.Decrement)({
+        author: this.psStore.identity,
+      }),
+    );
   }
 }
